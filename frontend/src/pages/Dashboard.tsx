@@ -199,8 +199,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     return (order[a.severity as keyof typeof order] ?? 4) - (order[b.severity as keyof typeof order] ?? 4);
   });
 
-  const entriesWithWork = filtered.filter((e) => e.work_items?.length > 0);
-
   const d = new Date();
   const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
   const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
