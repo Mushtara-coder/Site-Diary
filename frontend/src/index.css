@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-black: #0a0b0d;
+  --color-offblack: #111318;
+  --color-panel: #161a20;
+  --color-panel2: #1c2129;
+  --color-border: rgba(255,255,255,0.07);
+  --color-border-md: rgba(255,255,255,0.13);
+  --color-text-white: #f5f4f0;
+  --color-text-muted: rgba(245,244,240,0.45);
+  --color-text-muted2: rgba(245,244,240,0.22);
+  --color-amber: #f59e0b;
+  --color-amber-dim: #b3720a;
+  --color-amber-glow: rgba(245,158,11,0.12);
+  --color-teal: #14b8a6;
+  --color-teal-dim: rgba(20,184,166,0.15);
+  --color-red: #ef4444;
+  --color-red-dim: rgba(239,68,68,0.10);
+  --color-green: #22c55e;
+  --color-purple: #8b5cf6;
+}
+
+html, body, #root {
+  height: 100%;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* Light theme (default) */
+html {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+html {
+  --color-black: #0a0b0d;
+  --color-offblack: #f8fafc;
+  --color-panel: #ffffff;
+  --color-panel2: #f1f5f9;
+  --color-border: rgba(0,0,0,0.08);
+  --color-border-md: rgba(0,0,0,0.15);
+  --color-text-white: #0f172a;
+  --color-text-muted: rgba(15,23,42,0.55);
+  --color-text-muted2: rgba(15,23,42,0.35);
+}
+
+/* Dark theme */
+html.dark {
+  background-color: #0a0b0d;
+  color: #f5f4f0;
+}
+
+html.dark {
+  --color-black: #0a0b0d;
+  --color-offblack: #111318;
+  --color-panel: #161a20;
+  --color-panel2: #1c2129;
+  --color-border: rgba(255,255,255,0.07);
+  --color-border-md: rgba(255,255,255,0.13);
+  --color-text-white: #f5f4f0;
+  --color-text-muted: rgba(245,244,240,0.45);
+  --color-text-muted2: rgba(245,244,240,0.22);
+}

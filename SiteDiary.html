@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SiteDiary — Field Intelligence Platform</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js" crossorigin></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Dark mode (default) ── */
+    :root {
+      --bg-black:     #0a0b0d;
+      --bg-offblack:  #111318;
+      --bg-panel:     #161a20;
+      --bg-panel2:    #1c2129;
+      --border:       rgba(255,255,255,0.07);
+      --border-md:    rgba(255,255,255,0.13);
+      --text-white:   #f5f4f0;
+      --text-muted:   rgba(245,244,240,0.45);
+      --text-muted2:  rgba(245,244,240,0.22);
+      --scrolltrack:  #111318;
+      --amber:        #f59e0b;
+      --amber-dim:    #b3720a;
+      --amber-glow:   rgba(245,158,11,0.12);
+      --teal:         #14b8a6;
+      --teal-dim:     rgba(20,184,166,0.15);
+      --red:          #ef4444;
+      --red-dim:      rgba(239,68,68,0.10);
+      --green:        #22c55e;
+      --purple:       #8b5cf6;
+    }
+
+    /* ── Light mode via data-theme attribute (manual toggle) ── */
+    html[data-theme="light"] {
+      --bg-black:     #f5f4f0;
+      --bg-offblack:  #eceae4;
+      --bg-panel:     #ffffff;
+      --bg-panel2:    #f0ede7;
+      --border:       rgba(0,0,0,0.08);
+      --border-md:    rgba(0,0,0,0.16);
+      --text-white:   #0a0b0d;
+      --text-muted:   rgba(10,11,13,0.55);
+      --text-muted2:  rgba(10,11,13,0.35);
+      --scrolltrack:  #eceae4;
+      --amber:        #c47e08;
+      --amber-dim:    #9a6205;
+      --amber-glow:   rgba(196,126,8,0.10);
+      --teal:         #0d9488;
+      --teal-dim:     rgba(13,148,136,0.12);
+      --red:          #dc2626;
+      --red-dim:      rgba(220,38,38,0.08);
+      --green:        #16a34a;
+      --purple:       #7c3aed;
+    }
+    /* ── System light preference fallback (no manual override set) ── */
+    @media (prefers-color-scheme: light) {
+      html:not([data-theme="dark"]):not([data-theme="light"]) {
+        --bg-black:     #f5f4f0;
+        --bg-offblack:  #eceae4;
+        --bg-panel:     #ffffff;
+        --bg-panel2:    #f0ede7;
+        --border:       rgba(0,0,0,0.08);
+        --border-md:    rgba(0,0,0,0.16);
+        --text-white:   #0a0b0d;
+        --text-muted:   rgba(10,11,13,0.55);
+        --text-muted2:  rgba(10,11,13,0.35);
+        --scrolltrack:  #eceae4;
+        --amber:        #c47e08;
+        --amber-dim:    #9a6205;
+        --amber-glow:   rgba(196,126,8,0.10);
+        --teal:         #0d9488;
+        --teal-dim:     rgba(13,148,136,0.12);
+        --red:          #dc2626;
+        --red-dim:      rgba(220,38,38,0.08);
+        --green:        #16a34a;
+        --purple:       #7c3aed;
+      }
+    }
+
+    html, body, #root {
+      height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text-white);
+      background: var(--bg-black);
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; font-family: 'DM Sans', sans-serif; }
+    input, select, textarea { font-family: 'DM Sans', sans-serif; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--scrolltrack); }
+    ::-webkit-scrollbar-thumb { background: rgba(245,158,11,0.3); border-radius: 3px; }
+    @keyframes toastIn { from { opacity:0; transform:translateX(16px);} to { opacity:1; transform:none;} }
+    @keyframes fadeIn  { from { opacity:0; } to { opacity:1; } }
+    @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:none; } }
+    @keyframes drawerIn { from { transform:translateX(-100%); } to { transform:translateX(0); } }
+    @keyframes blink   { 0%,100%{opacity:1} 50%{opacity:0} }
+    @keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:0.6} }
+    .sd-page { animation: fadeIn 0.25s ease; }
+    .slide-up { animation: slideUp 0.35s ease both; }
+
+    /* ── Mobile layout utilities ── */
+    @media (max-width: 767px) {
+      .sd-sidebar { transform: translateX(-100%) !important; transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); }
+      .sd-sidebar.open { transform: translateX(0) !important; animation: drawerIn 0.28s cubic-bezier(0.4,0,0.2,1); }
+      .sd-main-content { margin-left: 0 !important; }
+      .sd-grid-4 { grid-template-columns: 1fr 1fr !important; }
+      .sd-grid-2 { grid-template-columns: 1fr !important; }
+      .sd-grid-auto { grid-template-columns: 1fr !important; }
+      .sd-auth-grid { grid-template-columns: 1fr !important; }
+      .sd-auth-left { display: none !important; }
+      .sd-auth-right { padding: 36px 24px !important; }
+      .sd-hero-padding { padding: 60px 20px 40px !important; }
+      .sd-section-padding { padding: 48px 20px !important; }
+      .sd-footer { padding: 24px 20px !important; flex-direction: column !important; gap: 12px !important; }
+      .sd-nav-links { display: none !important; }
+      .sd-content-area { padding: 20px 16px !important; }
+      .sd-topbar { padding: 0 16px !important; }
+      .sd-page-title h1 { font-size: 28px !important; }
+      .sd-kpi-grid { grid-template-columns: 1fr 1fr !important; }
+      .sd-dashboard-bottom { grid-template-columns: 1fr !important; }
+      .sd-filter-bar { flex-direction: column !important; align-items: stretch !important; }
+      .sd-filter-bar > div { width: 100% !important; }
+      .sd-filter-bar select, .sd-filter-bar input { width: 100% !important; }
+      .sd-reports-grid { grid-template-columns: 1fr 1fr !important; }
+      .sd-settings-layout { flex-direction: column !important; }
+      .sd-settings-tabs { flex-direction: row !important; flex-wrap: wrap !important; border-right: none !important; border-bottom: 1px solid var(--border) !important; padding-bottom: 8px !important; }
+    }
+    @media (max-width: 480px) {
+      .sd-grid-4 { grid-template-columns: 1fr !important; }
+      .sd-kpi-grid { grid-template-columns: 1fr !important; }
+      .sd-reports-grid { grid-template-columns: 1fr !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+    /* ══════════════════════════════════════════════════════
+       DESIGN TOKENS
+    ══════════════════════════════════════════════════════ */
+    const T = {
+      black:     "var(--bg-black)",
+      offBlack:  "var(--bg-offblack)",
+      panel:     "var(--bg-panel)",
+      panel2:    "var(--bg-panel2)",
+      border:    "var(--border)",
+      borderMd:  "var(--border-md)",
+      amber:     "var(--amber)",
+      amberDim:  "var(--amber-dim)",
+      amberGlow: "var(--amber-glow)",
+      teal:      "var(--teal)",
+      tealDim:   "var(--teal-dim)",
+      red:       "var(--red)",
+      redDim:    "var(--red-dim)",
+      white:     "var(--text-white)",
+      muted:     "var(--text-muted)",
+      muted2:    "var(--text-muted2)",
+      green:     "var(--green)",
+      purple:    "var(--purple)",
+      sidebarW:  240,
+    };
+
+    /* ══════════════════════════════════════════════════════
+       LOCAL STORAGE HELPERS
+    ══════════════════════════════════════════════════════ */
+    const LS = {
+      get: (k, def = null) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch { return def; } },
+      set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+      del: (k) => localStorage.removeItem(k),
+    };
+    const KEYS = { users: "sd_users", session: "sd_session", entries: "sd_entries", projects: "sd_projects" };
+
+    /* ══════════════════════════════════════════════════════
+       CRYPTO HELPERS (PBKDF2)
+    ══════════════════════════════════════════════════════ */
+    async function hashPassword(plain) {
+      const enc = new TextEncoder();
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const key = await crypto.subtle.importKey("raw", enc.encode(plain), "PBKDF2", false, ["deriveBits"]);
+      const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" }, key, 256);
+      const hex = s => Array.from(s).map(b => b.toString(16).padStart(2,"0")).join("");
+      return `pbkdf2:${hex(salt)}:${hex(new Uint8Array(bits))}`;
+    }
+    async function verifyPassword(plain, stored) {
+      if (!stored.startsWith("pbkdf2:")) return plain === stored;
+      const [, saltHex, hashHex] = stored.split(":");
+      const salt = new Uint8Array(saltHex.match(/.{2}/g).map(b => parseInt(b,16)));
+      const enc = new TextEncoder();
+      const key = await crypto.subtle.importKey("raw", enc.encode(plain), "PBKDF2", false, ["deriveBits"]);
+      const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" }, key, 256);
+      const computed = Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2,"0")).join("");
+      return computed === hashHex;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       DATE HELPERS
+    ══════════════════════════════════════════════════════ */
+    function todayStr(offset = 0) {
+      const d = new Date(); d.setDate(d.getDate() + offset);
+      return d.toISOString().split("T")[0];
+    }
+    function getWeekNum(d) {
+      const j = new Date(d.getFullYear(), 0, 1);
+      return Math.ceil((((d - j) / 86400000) + j.getDay() + 1) / 7);
+    }
+    function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+    /* ══════════════════════════════════════════════════════
+       SHARED COMPONENTS
+    ══════════════════════════════════════════════════════ */
+
+    function Logo({ onClick }) {
+      return (
+        <div onClick={onClick} style={{ display:"flex", alignItems:"center", gap:10, cursor:"pointer" }}>
+          <div style={{
+            width:34, height:34, background:T.amber, display:"grid", placeItems:"center",
+            fontFamily:"'Bebas Neue',sans-serif", color:T.black, fontSize:18,
+            clipPath:"polygon(0 0, 85% 0, 100% 15%, 100% 100%, 15% 100%, 0 85%)"
+          }}>SD</div>
+          <span style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:20, letterSpacing:2 }}>SITEDIARY</span>
+        </div>
+      );
+    }
+
+    function Btn({ children, variant="primary", size="md", onClick, style: s, disabled }) {
+      const base = { display:"inline-flex", alignItems:"center", gap:8, border:"none", cursor:disabled?"not-allowed":"pointer", transition:"all 0.2s", letterSpacing:"0.2px", fontFamily:"'DM Sans',sans-serif", fontWeight:500, fontSize: size==="sm" ? 12 : 13, padding: size==="sm" ? "7px 14px" : "10px 22px" };
+      const vars = {
+        primary:  { background:T.amber, color:T.black, clipPath:"polygon(0 0, 92% 0, 100% 16%, 100% 100%, 8% 100%, 0 84%)" },
+        outline:  { background:"transparent", color:T.white, border:`1px solid ${T.borderMd}` },
+        ghost:    { background:"transparent", color:T.muted, padding:"8px 14px" },
+        danger:   { background:T.redDim, color:T.red, border:`1px solid rgba(239,68,68,0.25)` },
+      };
+      return (
+        <button onClick={onClick} disabled={disabled} style={{ ...base, ...vars[variant], opacity:disabled?0.5:1, ...s }}>
+          {children}
+        </button>
+      );
+    }
+
+    function FormGroup({ label, children, error }) {
+      return (
+        <div style={{ marginBottom:20 }}>
+          <label style={{ display:"block", fontFamily:"'DM Mono',monospace", fontSize:11, letterSpacing:"1.5px", textTransform:"uppercase", color:T.muted, marginBottom:8 }}>{label}</label>
+          {children}
+          {error && <div style={{ color:T.red, fontSize:11, marginTop:5, fontFamily:"'DM Mono',monospace" }}>{error}</div>}
+        </div>
+      );
+    }
+
+    const inputStyle = {
+      width:"100%", background:T.panel, border:`1px solid ${T.border}`, color:T.white,
+      padding:"13px 16px", fontSize:14, outline:"none",
+      clipPath:"polygon(0 0, 96% 0, 100% 8%, 100% 100%, 4% 100%, 0 92%)",
+      transition:"border-color 0.2s",
+    };
+
+    function Input({ type="text", value, onChange, placeholder, min, style: s, id }) {
+      const [focus, setFocus] = useState(false);
+      return <input id={id} type={type} value={value} onChange={onChange} placeholder={placeholder} min={min}
+        style={{ ...inputStyle, borderColor: focus ? T.amber : T.border, boxShadow: focus ? `0 0 0 3px ${T.amberGlow}` : "none", ...s }}
+        onFocus={() => setFocus(true)} onBlur={() => setFocus(false)} />;
+    }
+
+    function Select({ value, onChange, children, style: s }) {
+      const [focus, setFocus] = useState(false);
+      return <select value={value} onChange={onChange} onFocus={() => setFocus(true)} onBlur={() => setFocus(false)}
+        style={{ ...inputStyle, appearance:"none", cursor:"pointer", clipPath:"none", borderColor: focus ? T.amber : T.border,
+          backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(245,244,240,0.4)' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
+          backgroundRepeat:"no-repeat", backgroundPosition:"right 16px center", ...s }}>
+        {children}
+      </select>;
+    }
+
+    function Textarea({ value, onChange, placeholder, rows=3, style: s }) {
+      const [focus, setFocus] = useState(false);
+      return <textarea value={value} onChange={onChange} placeholder={placeholder} rows={rows}
+        style={{ ...inputStyle, clipPath:"none", resize:"vertical", minHeight:90, borderColor: focus ? T.amber : T.border, ...s }}
+        onFocus={() => setFocus(true)} onBlur={() => setFocus(false)} />;
+    }
+
+    function PanelCard({ children, style: s }) {
+      return <div style={{ background:T.panel, border:`1px solid ${T.border}`, padding:28, marginBottom:20, ...s }}>{children}</div>;
+    }
+
+    function PanelHeader({ title, badge, right }) {
+      return (
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20, paddingBottom:16, borderBottom:`1px solid ${T.border}` }}>
+          <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:20, letterSpacing:"0.5px" }}>{title}</div>
+          {badge && <span style={{ fontFamily:"'DM Mono',monospace", fontSize:10, letterSpacing:1, color:T.amber, padding:"4px 10px", border:`1px solid rgba(245,158,11,0.3)`, background:T.amberGlow }}>{badge}</span>}
+          {right}
+        </div>
+      );
+    }
+
+    function ToastContainer({ toasts, remove }) {
+      return (
+        <div style={{ position:"fixed", bottom:24, right:24, zIndex:9000, display:"flex", flexDirection:"column", gap:10 }}>
+          {toasts.map(t => (
+            <div key={t.id} onClick={() => remove(t.id)} style={{
+              display:"flex", alignItems:"center", gap:12, padding:"13px 18px",
+              background:T.panel, border:`1px solid ${T.borderMd}`, fontSize:13, minWidth:260,
+              animation:"toastIn 0.3s ease", boxShadow:"0 8px 32px rgba(0,0,0,0.5)", cursor:"pointer",
+              borderLeft:`3px solid ${t.type==="success" ? T.green : t.type==="error" ? T.red : T.amber}`
+            }}>
+              <span>{t.type==="success"?"✓":t.type==="error"?"✗":"ℹ"}</span>
+              <span style={{ flex:1 }}>{t.msg}</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    const NAV = [
+      { id:"dashboard", label:"Dashboard", icon:"⊞" },
+      { id:"new-entry", label:"New Entry", icon:"✏" },
+      { id:"projects",  label:"Projects",  icon:"📁" },
+      { id:"reports",   label:"Reports",   icon:"📄" },
+      { id:"settings",  label:"Settings",  icon:"⚙" },
+    ];
+
+    function Sidebar({ page, onNav, user, onLogout, mobileOpen, onClose }) {
+      const initial = user ? (user.firstName[0] + (user.lastName[0]||"")).toUpperCase() : "?";
+      return (
+        <>
+          {mobileOpen && <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", zIndex:199, backdropFilter:"blur(2px)", animation:"fadeIn 0.2s ease" }} />}
+          <aside className={`sd-sidebar${mobileOpen ? " open" : ""}`} style={{
+            width:T.sidebarW, minHeight:"100vh", background:T.panel, borderRight:`1px solid ${T.border}`,
+            display:"flex", flexDirection:"column", position:"fixed", top:0, left:0, zIndex:200,
+            flexShrink:0,
+          }}>
+            <div style={{ padding:"20px 20px 16px", borderBottom:`1px solid ${T.border}` }}>
+              <Logo />
+            </div>
+            <nav style={{ flex:1, padding:"16px 12px", display:"flex", flexDirection:"column", gap:2 }}>
+              <div style={{ fontFamily:"'DM Mono',monospace", fontSize:10, letterSpacing:"1.5px", color:T.muted2, padding:"8px 8px 4px", textTransform:"uppercase" }}>Navigation</div>
+              {NAV.map(n => (
+                <div key={n.id} onClick={() => { onNav(n.id); onClose?.(); }}
+                  style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", cursor:"pointer", borderRadius:3, fontSize:13.5,
+                    background: page===n.id ? T.amberGlow : "none",
+                    color: page===n.id ? T.amber : T.muted,
+                    border: page===n.id ? `1px solid rgba(245,158,11,0.15)` : "1px solid transparent",
+                    transition:"all 0.15s",
+                  }}>
+                  <span style={{ fontSize:15 }}>{n.icon}</span>
+                  <span>{n.label}</span>
+                  {page===n.id && <span style={{ marginLeft:"auto", width:4, height:4, background:T.amber, borderRadius:"50%" }} />}
+                </div>
+              ))}
+            </nav>
+            <div style={{ padding:"16px 16px 20px", borderTop:`1px solid ${T.border}` }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+                <div style={{ width:34, height:34, background:T.amber, borderRadius:"50%", display:"grid", placeItems:"center", fontFamily:"'Bebas Neue',sans-serif", fontSize:15, color:T.black, flexShrink:0 }}>{initial}</div>
+                <div style={{ minWidth:0 }}>
+                  <div style={{ fontSize:13, fontWeight:500, color:T.white, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{user?.firstName} {user?.lastName}</div>
+                  <div style={{ fontFamily:"'DM Mono',monospace", fontSize:10, color:T.muted2, letterSpacing:"0.5px" }}>{user?.role?.toUpperCase()}</div>
+                </div>
+              </div>
+              <div onClick={onLogout} style={{ display:"flex", alignItems:"center", gap:8, padding:"9px 10px", cursor:"pointer", fontSize:12.5, color:T.muted, borderRadius:3, transition:"all 0.15s" }}
+                onMouseEnter={e => { e.currentTarget.style.background="rgba(239,68,68,0.08)"; e.currentTarget.style.color=T.red; }}
+                onMouseLeave={e => { e.currentTarget.style.background="none"; e.currentTarget.style.color=T.muted; }}>
+                <span>⎋</span> <span>Log Out</span>
+              </div>
+            </div>
+          </aside>
+        </>
+      );
+    }
+
+    function AppLayout({ page, onNav, user, onLogout, toggleTheme, effectiveTheme, children }) {
+      const [mobileOpen, setMobileOpen] = useState(false);
+      return (
+        <div style={{ display:"flex", minHeight:"100vh" }}>
+          <Sidebar page={page} onNav={onNav} user={user} onLogout={onLogout} mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
+          <div className="sd-main-content" style={{ marginLeft:T.sidebarW, flex:1, display:"flex", flexDirection:"column", minWidth:0 }}>
+            {children(setMobileOpen, toggleTheme, effectiveTheme)}
+          </div>
+        </div>
+      );
+    }
+
+    function ThemeToggle({ toggleTheme, effectiveTheme }) {
+      const isDark = effectiveTheme === "dark";
+      return (
+        <button onClick={toggleTheme} title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+          style={{ display:"flex", alignItems:"center", justifyContent:"center", width:36, height:36, background:T.panel2, border:`1px solid ${T.border}`, color:T.muted, cursor:"pointer", flexShrink:0, fontSize:16, transition:"all 0.2s" }}
+          onMouseEnter={e=>{e.currentTarget.style.borderColor=T.amber;e.currentTarget.style.color=T.amber;}}
+          onMouseLeave={e=>{e.currentTarget.style.borderColor=T.border;e.currentTarget.style.color=T.muted;}}>
+          {isDark ? "☀" : "☾"}
+        </button>
+      );
+    }
+
+    function Topbar({ breadcrumb, right, onHamburger, toggleTheme, effectiveTheme }) {
+      return (
+        <div className="sd-topbar" style={{ height:60, borderBottom:`1px solid ${T.border}`, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 28px", background:T.offBlack, flexShrink:0 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <button onClick={onHamburger} style={{ display:"flex", alignItems:"center", justifyContent:"center", width:36, height:36, background:T.panel2, border:`1px solid ${T.border}`, color:T.muted, cursor:"pointer", flexShrink:0 }}>☰</button>
+            <div style={{ fontFamily:"'DM Mono',monospace", fontSize:12, color:T.muted }}>
+              SiteDiary / <span style={{ color:T.white }}>{breadcrumb}</span>
+            </div>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            {right}
+            <ThemeToggle toggleTheme={toggleTheme} effectiveTheme={effectiveTheme} />
+          </div>
+        </div>
+      );
+    }
+
+    function TopbarBtn({ onClick, children }) {
+      return (
+        <button onClick={onClick} style={{ background:T.amberGlow, border:`1px solid rgba(245,158,11,0.3)`, color:T.amber, padding:"8px 16px", fontFamily:"'DM Mono',monospace", fontSize:11, letterSpacing:1, cursor:"pointer", transition:"all 0.15s" }}>{children}</button>
+      );
+    }
+
+    function Content({ children }) {
+      return <div style={{ padding:"32px 28px", flex:1, overflowY:"auto" }} className="sd-page sd-content-area">{children}</div>;
+    }
+
+    function PageTitle({ eyebrow, title, accent }) {
+      return (
+        <div style={{ marginBottom:28 }}>
+          <div style={{ fontFamily:"'DM Mono',monospace", fontSize:11, letterSpacing:"1.5px", color:T.amber, textTransform:"uppercase", marginBottom:8 }}>{eyebrow}</div>
+          <h1 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:42, letterSpacing:1, lineHeight:1 }}>
+            {title}{" "}{accent && <span style={{ color:T.amber }}>{accent}</span>}
+          </h1>
+        </div>
+      );
+    }
+
+    function KpiCard({ label, value, sub, color = T.amber }) {
+      return (
+        <div style={{ background:T.panel, border:`1px solid ${T.border}`, padding:"20px 24px", position:"relative", overflow:"hidden" }}>
+          <div style={{ position:"absolute", bottom:0, left:0, right:0, height:2, background:color, opacity:0.5 }} />
+          <div style={{ fontFamily:"'DM Mono',monospace", fontSize:10, letterSpacing:"1.5px", textTransform:"uppercase", color:T.muted, marginBottom:8 }}>{label}</div>
+          <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:48, letterSpacing:1, color, lineHeight:1, marginBottom:4 }}>{value}</div>
+          <div style={{ fontSize:11, color:T.muted2, fontFamily:"'DM Mono',monospace" }}>{sub}</div>
+        </div>
+      );
+    }
+
+    function SevBadge({ sev }) {
+      const map = { LOW:{c:T.green,bg:"rgba(34,197,94,0.1)"}, MEDIUM:{c:T.amber,bg:T.amberGlow}, HIGH:{c:T.red,bg:"rgba(239,68,68,0.12)"}, CRITICAL:{c:"#ff6b6b",bg:"rgba(239,68,68,0.22)"} };
+      const s = map[sev] || map.LOW;
+      return <span style={{ fontFamily:"'DM Mono',monospace", fontSize:10, letterSpacing:"0.5px", padding:"2px 6px", borderRadius:2, background:s.bg, color:s.c }}>{sev}</span>;
+    }
+
+    function Modal({ open, onClose, title, children, maxWidth=640 }) {
+      if (!open) return null;
+      return (
+        <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:500, overflowY:"auto", padding:"40px 20px", animation:"fadeIn 0.2s ease" }}>
+          <div onClick={e => e.stopPropagation()} style={{ maxWidth, margin:"0 auto", background:T.panel, border:`1px solid ${T.borderMd}`, position:"relative", animation:"slideUp 0.25s ease" }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"20px 24px", borderBottom:`1px solid ${T.border}` }}>
+              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:22, letterSpacing:1 }}>{title}</div>
+              <button onClick={onClose} style={{ background:"none", border:"none", color:T.muted, fontSize:22, cursor:"pointer", lineHeight:1 }}>×</button>
+            </div>
+            <div style={{ padding:24 }}>{children}</div>
+          </div>
+        </div>
+      );
+    }
+
+    function Placeholder({ icon, title, desc, tag }) {
+      return (
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"56px 24px", textAlign:"center", gap:12 }}>
+          <div style={{ fontSize:40, opacity:0.4 }}>{icon}</div>
+          <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:22, color:T.muted }}>{title}</div>
+          <div style={{ fontSize:13, color:T.muted2, maxWidth:300, lineHeight:1.6 }}>{desc}</div>
+          {tag && <span style={{ fontFamily:"'DM Mono',monospace", fontSize:10, letterSpacing:"1.5px", color:"rgba(245,158,11,0.5)", padding:"4px 12px", border:"1px solid rgba(245,158,11,0.15)", marginTop:4 }}>{tag}</span>}
+        </div>
+      );
+    }
+
+    /* ══════════════════════════════════════════════════════
+       LANDING PAGE
+    ══════════════════════════════════════════════════════ */
+    function LandingPage({ onNav, toggleTheme, effectiveTheme }) {
+      const features = [
+        { icon:"📋", title:"Smart Daily Logs", desc:"Capture work summaries, deliveries, personnel counts, weather, and photos in one streamlined form." },
+        { icon:"📊", title:"Automated Reports", desc:"Generate weekly, bi-weekly, monthly, and annual reports with one click — export to PDF or Excel." },
+        { icon:"🔍", title:"Issue Tracking", desc:"Log and categorise issues by severity — LOW to CRITICAL — with built-in alert escalation." },
+        { icon:"☁️", title:"Cloud Sync", desc:"Connect Firebase for real-time sync across your team. Works offline, syncs when reconnected." },
+        { icon:"🗺️", title:"GPS Photo Tagging", desc:"Attach GPS-stamped site photos directly to each entry for precise documentation." },
+        { icon:"🤖", title:"AI Summaries", desc:"Generate intelligent narrative summaries of your reports powered by Claude AI." },
+      ];
+      return (
+        <div style={{ background:T.black, color:T.white, minHeight:"100vh" }} className="sd-page">
+          <nav style={{ position:"sticky", top:0, zIndex:100, borderBottom:`1px solid ${T.border}`, background:"rgba(10,11,13,0.9)", backdropFilter:"blur(12px)", padding:"0 48px", display:"flex", alignItems:"center", justifyContent:"space-between", height:64 }}>
+            <Logo />
+            <div className="sd-nav-links" style={{ display:"flex", alignItems:"center", gap:24, fontSize:13.5 }}>
+              <a href="#features" style={{ color:T.muted, transition:"color 0.15s" }} onMouseEnter={e=>e.target.style.color=T.white} onMouseLeave={e=>e.target.style.color=T.muted}>Features</a>
+              <a href="#roles" style={{ color:T.muted, transition:"color 0.15s" }} onMouseEnter={e=>e.target.style.color=T.white} onMouseLeave={e=>e.target.style.color=T.muted}>Roles</a>
+              <a href="#reports" style={{ color:T.muted, transition:"color 0.15s" }} onMouseEnter={e=>e.target.style.color=T.white} onMouseLeave={e=>e.target.style.color=T.muted}>Reports</a>
+              <button onClick={() => onNav("login")} style={{ background:"none", border:`1px solid ${T.border}`, color:T.muted, padding:"8px 16px", fontSize:13, cursor:"pointer", transition:"all 0.15s" }}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor=T.amber;e.currentTarget.style.color=T.amber;}} onMouseLeave={e=>{e.currentTarget.style.borderColor=T.border;e.currentTarget.style.color=T.muted;}}>
+                Log In
+              </button>
+              <button onClick={() => onNav("signup")} style={{ background:T.amber, border:"none", color:T.black, padding:"8px 20px", fontSize:13, fontWeight:700, cursor:"pointer", clipPath:"polygon(0 0, 90% 0, 100% 20%, 100% 100%, 10% 100%, 0 80%)" }}>
+                Get Started
+              </button>
+              <ThemeToggle toggleTheme={toggleTheme} effectiveTheme={effectiveTheme} />
+            </div>
+          </nav>
+
+          <section className="sd-hero-padding" style={{ padding:"100px 48px 80px", maxWidth:900, margin:"0 auto" }}>
+            <div style={{ fontFamily:"'DM Mono',monospace", fontSize:11, letterSpacing:"2px", color:T.amber, textTransform:"uppercase", marginBottom:20 }}>Field Intelligence Platform</div>
+            <h1 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"clamp(56px,8vw,96px)", lineHeight:0.95, letterSpacing:2, marginBottom:28 }}>
+              YOUR SITE.<br/><span style={{ color:T.amber }}>EVERY DAY.</span><br/>DOCUMENTED.
+            </h1>
+            <p style={{ fontSize:17, color:T.muted, maxWidth:560, lineHeight:1.7, marginBottom:40 }}>
+              SiteDiary transforms daily field entries into intelligent, automated reports — empowering site engineers, project managers, and stakeholders with real-time visibility and decision-ready data.
+            </p>
+            <div style={{ display:"flex", gap:16, flexWrap:"wrap" }}>
+              <button onClick={() => onNav("signup")} style={{ background:T.amber, border:"none", color:T.black, padding:"14px 32px", fontSize:14, fontWeight:700, cursor:"pointer", clipPath:"polygon(0 0, 92% 0, 100% 20%, 100% 100%, 8% 100%, 0 80%)", transition:"background 0.2s" }}
+                onMouseEnter={e=>e.currentTarget.style.background="#fbbf24"} onMouseLeave={e=>e.currentTarget.style.background=T.amber}>
+                Start Free Trial
+              </button>
+              <a href="#features" style={{ display:"inline-flex", alignItems:"center", gap:8, border:`1px solid ${T.borderMd}`, color:T.white, padding:"14px 28px", fontSize:14, transition:"border-color 0.2s" }}
+                onMouseEnter={e=>e.currentTarget.style.borderColor=T.amber} onMouseLeave={e=>e.currentTarget.style.borderColor=T.borderMd}>
+                Explore Features →
+              </a>
+            </div>
+          </section>
+
+          <section style={{ background:T.panel, borderTop:`1px solid ${T.border}`, borderBottom:`1px solid ${T.border}`, padding:"40px 48px" }}>
+            <div className="sd-grid-4" style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:32, maxWidth:900, margin:"0 auto" }}>
+              {[["10K+","Daily Entries Logged"],["98%","Uptime Reliability"],["50+","Project Types Supported"],["<2min","Report Generation Time"]].map(([n,l]) => (
+                <div key={l} style={{ textAlign:"center" }}>
+                  <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:42, color:T.amber, letterSpacing:1 }}>{n}</div>
+                  <div style={{ fontSize:12, color:T.muted, fontFamily:"'DM Mono',monospace", letterSpacing:"0.3px" }}>{l}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section id="features" className="sd-section-padding" style={{ padding:"80px 48px", maxWidth:1000, margin:"0 auto" }}>
+            <div style={{ fontFamily:"'DM Mono',monospace", fontSize:11, letterSpacing:"2px", color:T.amber, marginBottom:12 }}>CORE CAPABILITIES</div>
+            <h2 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:48, letterSpacing:1, marginBottom:48 }}>FEATURES BUILT<br/><span style={{ color:T.amber }}>FOR THE FIELD</span></h2>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:20 }}>
+              {features.map((f,i) => (
+                <div key={i} className="slide-up" style={{ background:T.panel, border:`1px solid ${T.border}`, padding:28, transition:"border-color 0.2s", animationDelay:`${i*0.05}s` }}
+                  onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(245,158,11,0.3)"} onMouseLeave={e=>e.currentTarget.style.borderColor=T.border}>
+                  <div style={{ fontSize:32, marginBottom:16 }}>{f.icon}</div>
+                  <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:20, letterSpacing:"0.5px", marginBottom:10 }}>{f.title}</div>
+                  <div style={{ fontSize:13.5, color:T.muted, lineHeight:1.7 }}>{f.desc}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section id="roles" style={{ background:T.panel, borderTop:`1px solid ${T.border}`, borderBottom:`1px solid ${T.border}`, padding:"80px 48px" }}>
+            <div style={{ maxWidth:1000, margin:"0 auto" }}>
+              <div style={{ fontFamily:"'DM Mono',monospace", fontSize:11, letterSpacing:"2px", color:T.amber, marginBottom:12 }}>WHO IT'S FOR</div>
+              <h2 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:48, letterSpacing:1, marginBottom:48 }}>BUILT FOR EVERY <span style={{ color:T.amber }}>ROLE</span></h2>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))", gap:20 }}>
+                {[
+                  { icon:"👷", title:"Site Engineers", desc:"Log daily work, capture photos, and document issues on-site from any device." },
+                  { icon:"📐", title:"Project Managers", desc:"Monitor progress across multiple sites with consolidated dashboard views." },
+                  { icon:"🏢", title:"Stakeholders", desc:"Access read-only reports and KPI dashboards without disrupting field teams." },
+                  { icon:"⚖️", title:"Safety Officers", desc:"Track and escalate safety issues with severity classification and history." },
+                ].map((r,i) => (
+                  <div key={i} style={{ padding:24, border:`1px solid ${T.border}`, background:T.panel2 }}>
+                    <div style={{ fontSize:36, marginBottom:14 }}>{r.icon}</div>
+                    <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:18, letterSpacing:"0.5px", marginBottom:8 }}>{r.title}</div>
+                    <div style={{ fontSize:13, color:T.muted, lineHeight:1.6 }}>{r.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section id="reports" style={{ padding:"80px 48px", maxWidth:1000, margin:"0 auto" }}>
+            <div style={{ fontFamily:"'DM Mono',monospace", fontSize:11, letterSpacing:"2px", color:T.amber, marginBottom:12 }}>REPORTS ENGINE</div>
+            <h2 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:48, letterSpacing:1, marginBottom:48 }}>INTELLIGENT <span style={{ color:T.amber }}>REPORTING</span></h2>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:16 }}>
+              {[
+                { icon:"📋", name:"Weekly", freq:"Last 7 days" },
+                { icon:"📅", name:"Bi-Weekly", freq:"Last 14 days" },
+                { icon:"🗓️", name:"Monthly", freq:"Last 30 days" },
+                { icon:"📆", name:"Annual", freq:"Last 12 months" },
+              ].map((r,i) => (
+                <div key={i} style={{ background:T.panel, border:`1px solid ${T.border}`, padding:24, clipPath:"polygon(0 0, 88% 0, 100% 14%, 100% 100%, 12% 100%, 0 86%)", cursor:"pointer", transition:"all 0.2s" }}
+                  onMouseEnter={e=>{e.currentTarget.style.background=T.amberGlow;e.currentTarget.style.borderColor="rgba(245,158,11,0.4)";}} onMouseLeave={e=>{e.currentTarget.style.background=T.panel;e.currentTarget.style.borderColor=T.border;}}>
+                  <div style={{ fontSize:28, marginBottom:14 }}>{r.icon}</div>
+                  <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:22, letterSpacing:"0.5px" }}>{r.name}</div>
+                  <div style={{ fontFamily:"'DM Mono',monospace", fontSize:10, color:T.muted, marginTop:4 }}>{r.freq}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section style={{ background:`linear-gradient(135deg, ${T.panel} 0%, rgba(245,158,11,0.08) 100%)`, border:`1px solid ${T.border}`, margin:"0 48px 80px", padding:"80px 48px", textAlign:"center" }}>
+            <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:"clamp(36px,5vw,60px)", letterSpacing:1, marginBottom:16 }}>
+              START DOCUMENTING <span style={{ color:T.amber }}>TODAY</span>
+            </div>
+            <p style={{ fontSize:16, color:T.muted, marginBottom:36, maxWidth:480, margin:"0 auto 36px" }}>No credit card required. Set up in under 5 minutes. Try the demo account to explore all features.</p>
+            <div style={{ display:"flex", gap:16, justifyContent:"center", flexWrap:"wrap" }}>
+              <button onClick={() => onNav("signup")} style={{ background:T.amber, border:"none", color:T.black, padding:"16px 40px", fontSize:15, fontWeight:700, cursor:"pointer", clipPath:"polygon(0 0, 92% 0, 100% 20%, 100% 100%, 8% 100%, 0 80%)" }}>Create Free Account</button>
+              <button onClick={() => onNav("login")} style={{ background:"none", border:`1px solid ${T.borderMd}`, color:T.white, padding:"16px 32px", fontSize:15, cursor:"pointer" }}>Demo Login</button>
+            </div>
+          </section>
+
+          <footer className="sd-footer" style={{ borderTop:`1px solid ${T.border}`, padding:"32px 48px", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:16 }}>
+            <Logo />
+            <div style={{ fontFamily:"'DM Mono',monospace", fontSize:11, color:T.muted2 }}>© {new Date().getFullYear()} SiteDiary — Field Intelligence Platform</div>
+            <div style={{ display:"flex", gap:20, fontSize:12.5 }}>
+              {["Privacy","Terms","Contact"].map(l => <a key={l} href="#" style={{ color:T.muted }}>{l}</a>)}
+            </div>
+          </footer>
+        </div>
+      );
+    }
+
+    /* ══════════════════════════════════════════════════════
+       AUTH PAGES
+    ══════════════════════════════════════════════════════ */
+    function AuthLayout({ title, sub, children, onNav, navLabel, navTo, toggleTheme, effectiveTheme }) {
+      return (
+        <div className="sd-auth-grid sd-page" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", minHeight:"100vh", background:T.black }}>
+          <div className="sd-auth-left" style={{ background:T.panel, borderRight:`1px solid ${T.border}`, padding:48, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
+            <Logo onClick={() => onNav("landing")} />
+            <div>
+              <div style={{ fontFamily:"'DM Mono',monospace", fontSize:11, letterSpacing:"2px", color:T.amber, marginBottom:16 }}>FIELD INTELLIGENCE PLATFORM</div>
+              <h1 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:52, lineHeight:0.95, letterSpacing:1, marginBottom:24 }}>TRANSFORM<br/><span style={{ color:T.amber }}>YOUR</span><br/>SITE DATA</h1>
+              <p style={{ fontSize:14, color:T.muted, lineHeight:1.7, maxWidth:380 }}>Daily logs → automated reports → actionable insights. Everything your site team needs, in one platform.</p>
+              <div style={{ marginTop:32, display:"flex", flexDirection:"column", gap:10 }}>
+                {["Real-time dashboard & KPIs","PDF & Excel export","Firebase cloud sync","AI-powered report summaries"].map(f => (
+                  <div key={f} style={{ display:"flex", alignItems:"center", gap:10, fontSize:13.5, color:T.muted }}>
+                    <span style={{ color:T.green }}>✓</span> {f}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ fontFamily:"'DM Mono',monospace", fontSize:10, color:T.muted2 }}>DEMO: demo@sitediary.com / demo123</div>
+          </div>
+          <div className="sd-auth-right" style={{ padding:"60px 48px", display:"flex", flexDirection:"column", justifyContent:"center" }}>
+            <div style={{ maxWidth:400, width:"100%" }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:28 }}>
+                <h2 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:36, letterSpacing:1 }}>{title}</h2>
+                <ThemeToggle toggleTheme={toggleTheme} effectiveTheme={effectiveTheme} />
+              </div>
+              <p style={{ fontSize:13.5, color:T.muted, marginBottom:36 }}>{sub}</p>
+              {children}
+              <div style={{ marginTop:24, fontSize:13, color:T.muted, textAlign:"center" }}>
+                {navLabel} <span onClick={() => onNav(navTo)} style={{ color:T.amber, cursor:"pointer" }}>{navTo==="signup"?"Create account":"Sign in"}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function LoginPage({ onNav, onLogin, showToast, toggleTheme, effectiveTheme }) {
+      const [email, setEmail] = useState("");
+      const [pass, setPass] = useState("");
+      const [loading, setLoading] = useState(false);
+      const [error, setError] = useState("");
+
+      async function handleLogin(e) {
+        e?.preventDefault();
+        setError("");
+        if (!email || !pass) { setError("Please fill in all fields."); return; }
+        setLoading(true);
+        const users = LS.get(KEYS.users, []);
+        const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+        if (!user) { setError("No account found with that email."); setLoading(false); return; }
+        const ok = await verifyPassword(pass, user.password);
+        if (!ok) { setError("Incorrect password."); setLoading(false); return; }
+        const session = { ...user, _loginAt: Date.now(), _lastActive: Date.now() };
+        LS.set(KEYS.session, session);
+        onLogin(session);
+        showToast(`Welcome back, ${user.firstName}!`, "success");
+      }
+
+      return (
+        <AuthLayout title="WELCOME BACK" sub="Sign in to your SiteDiary account" onNav={onNav} navLabel="Don't have an account?" navTo="signup" toggleTheme={toggleTheme} effectiveTheme={effectiveTheme}>
+          {error && <div style={{ background:"rgba(239,68,68,0.08)", border:`1px solid rgba(239,68,68,0.25)`, color:T.red, padding:"12px 16px", fontSize:13, marginBottom:20 }}>{error}</div>}
+          <FormGroup label="Email Address">
+            <Input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@email.com" />
+          </FormGroup>
+          <FormGroup label="Password">
+            <Input type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder="••••••••" />
+          </FormGroup>
+          <Btn variant="primary" onClick={handleLogin} disabled={loading} style={{ width:"100%", justifyContent:"center", padding:"14px", fontSize:14, fontWeight:700 }}>
+            {loading ? "SIGNING IN…" : "SIGN IN"}
+          </Btn>
+        </AuthLayout>
+      );
+    }
+
+    function SignupPage({ onNav, onLogin, showToast, toggleTheme, effectiveTheme }) {
+      const [form, setForm] = useState({ firstName:"", lastName:"", email:"", password:"", confirm:"", role:"engineer", org:"" });
+      const [loading, setLoading] = useState(false);
+      const [errors, setErrors] = useState({});
+      const set = (k) => e => setForm(f => ({ ...f, [k]: e.target.value }));
+
+      async function handleSignup() {
+        const errs = {};
+        if (!form.firstName) errs.firstName = "Required";
+        if (!form.lastName)  errs.lastName  = "Required";
+        if (!form.email || !/\S+@\S+\.\S+/.test(form.email)) errs.email = "Valid email required";
+        if (form.password.length < 6) errs.password = "Min 6 characters";
+        if (form.password !== form.confirm) errs.confirm = "Passwords do not match";
+        if (Object.keys(errs).length) { setErrors(errs); return; }
+        setErrors({}); setLoading(true);
+        const users = LS.get(KEYS.users, []);
+        if (users.find(u => u.email.toLowerCase() === form.email.toLowerCase())) {
+          setErrors({ email:"Email already registered" }); setLoading(false); return;
+        }
+        const hashed = await hashPassword(form.password);
+        const user = { id: uid(), firstName:form.firstName, lastName:form.lastName, email:form.email, password:hashed, role:form.role, org:form.org };
+        users.push(user);
+        LS.set(KEYS.users, users);
+        const session = { ...user, _loginAt: Date.now(), _lastActive: Date.now() };
+        LS.set(KEYS.session, session);
+        onLogin(session);
+        showToast(`Account created! Welcome, ${form.firstName}!`, "success");
+      }
+
+      return (
+        <AuthLayout title="CREATE ACCOUNT" sub="Join SiteDiary — your field intelligence platform" onNav={onNav} navLabel="Already have an account?" navTo="login" toggleTheme={toggleTheme} effectiveTheme={effectiveTheme}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+            <FormGroup label="First Name" error={errors.firstName}><Input value={form.firstName} onChange={set("firstName")} placeholder="Ada" /></FormGroup>
+            <FormGroup label="Last Name"  error={errors.lastName}> <Input value={form.lastName}  onChange={set("lastName")}  placeholder="Okonkwo" /></FormGroup>
+          </div>
+          <FormGroup label="Email" error={errors.email}><Input type="email" value={form.email} onChange={set("email")} placeholder="you@email.com" /></FormGroup>
+          <FormGroup label="Organisation"><Input value={form.org} onChange={set("org")} placeholder="e.g. Acme Construction Ltd." /></FormGroup>
+          <FormGroup label="Role">
+            <Select value={form.role} onChange={set("role")}>
+              <option value="admin">Admin</option>
+              <option value="engineer">Site Engineer</option>
+              <option value="manager">Project Manager</option>
+              <option value="viewer">Viewer (read-only)</option>
+            </Select>
+          </FormGroup>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+            <FormGroup label="Password" error={errors.password}><Input type="password" value={form.password} onChange={set("password")} placeholder="••••••••" /></FormGroup>
+            <FormGroup label="Confirm"  error={errors.confirm}> <Input type="password" value={form.confirm}  onChange={set("confirm")}  placeholder="••••••••" /></FormGroup>
+          </div>
+          <Btn variant="primary" onClick={handleSignup} disabled={loading} style={{ width:"100%", justifyContent:"center", padding:"14px", fontSize:14, fontWeight:700 }}>
+            {loading ? "CREATING…" : "CREATE ACCOUNT"}
+          </Btn>
+        </AuthLayout>
+      );
+    }
+
+    /* ══════════════════════════════════════════════════════
+       NEW ENTRY MODAL COMPONENTS
+    ══════════════════════════════════════════════════════ */
+    function StructRow({ cols, children, onRemove }) {
+      return (
+        <div style={{ display:"grid", gridTemplateColumns:cols, gap:8, padding:"10px 14px", borderBottom:`1px solid rgba(255,255,255,0.04)`, alignItems:"start" }}>
+          {children}
+          <button onClick={onRemove} style={{ background:"none", border:"none", color:T.muted2, fontSize:18, cursor:"pointer", padding:"0 4px", alignSelf:"center", marginTop:16, lineHeight:1 }}
+            onMouseEnter={e=>e.currentTarget.style.color=T.red} onMouseLeave={e=>e.currentTarget.style.color=T.muted2}>×</button>
+        </div>
+      );
+    }
+
+    function StructInput({ value, onChange, placeholder, type="text", style: s }) {
+      return <input type={type} value={value} onChange={onChange} placeholder={placeholder}
+        style={{ width:"100%", background:T.offBlack, border:`1px solid ${T.border}`, color:T.white, padding:"8px 10px", fontSize:13, outline:"none", ...s }}
+        onFocus={e=>e.target.style.borderColor=T.amber} onBlur={e=>e.target.style.borderColor=T.border} />;
+    }
+
+    function StructSelect({ value, onChange, children }) {
+      return <select value={value} onChange={onChange}
+        style={{ width:"100%", background:T.offBlack, border:`1px solid ${T.border}`, color:T.white, padding:"8px 10px", fontSize:13, appearance:"none", cursor:"pointer" }}>
+        {children}
+      </select>;
+    }
+
+    function SectionBlock({ label, onAddRow, children }) {
+      return (
+        <div style={{ border:`1px solid ${T.border}`, marginBottom:16, overflow:"hidden" }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:T.panel2, padding:"9px 14px", borderBottom:`1px solid ${T.border}` }}>
+            <span style={{ fontFamily:"'DM Mono',monospace", fontSize:10, letterSpacing:"1.8px", color:T.amber, textTransform:"uppercase" }}>{label}</span>
+            <button onClick={onAddRow} style={{ background:"none", border:`1px solid rgba(245,158,11,0.3)`, color:T.amber, fontFamily:"'DM Mono',monospace", fontSize:10, letterSpacing:1, padding:"4px 10px", cursor:"pointer" }}>+ Add Row</button>
+          </div>
+          {children}
+        </div>
+      );
+    }
+
+    function NewEntryModal({ user, projects, onClose, showToast }) {
+      const [project, setProject] = useState("");
+      const [date, setDate]       = useState(todayStr());
+      const [weather, setWeather] = useState("Clear / Sunny");
+      const [personnel, setPersonnel] = useState("");
+      const [work, setWork]       = useState([]);
+      const [deliveries, setDeliveries] = useState([]);
+      const [plans, setPlans]     = useState([]);
+      const [issues, setIssues]   = useState([]);
+
+      const addWork     = () => setWork(w => [...w, { description:"", qty:"", unit:"" }]);
+      const addDelivery = () => setDeliveries(d => [...d, { material:"", qty:"", supplier:"", condition:"Good" }]);
+      const addPlan     = () => setPlans(p => [...p, { activity:"", expectedDate:"" }]);
+      const addIssue    = () => setIssues(i => [...i, { description:"", severity:"LOW" }]);
+
+      function submit() {
+        if (!project) { showToast("Please select a project","error"); return; }
+        if (!date)    { showToast("Please select a date","error"); return; }
+        const entry = {
+          id: uid(), userId: user?.id, projectId: project,
+          project: projects.find(p=>p.id===project)?.name || "",
+          date, weather, personnel: parseInt(personnel)||0,
+          workItems: work.filter(w=>w.description),
+          work: work.filter(w=>w.description).map(w=>w.description).join("; "),
+          deliveriesData: deliveries.filter(d=>d.material),
+          deliveries: deliveries.filter(d=>d.material).length,
+          plans: plans.filter(p=>p.activity),
+          issuesData: issues.filter(i=>i.description),
+          severity: issues.find(i=>i.description)?.severity || "",
+          issue: issues.filter(i=>i.description).map(i=>i.description).join("; "),
+          createdAt: Date.now(),
+        };
+        const all = LS.get(KEYS.entries,[]);
+        all.push(entry);
+        LS.set(KEYS.entries, all);
+        showToast("Entry saved successfully!","success");
+        onClose();
+      }
+
+      return (
+        <Modal open onClose={onClose} title="NEW SITE ENTRY" maxWidth={820}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+            <FormGroup label="Project *">
+              <Select value={project} onChange={e=>setProject(e.target.value)}>
+                <option value="">Select project</option>
+                {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </Select>
+            </FormGroup>
+            <FormGroup label="Date *">
+              <Input type="date" value={date} onChange={e=>setDate(e.target.value)} />
+            </FormGroup>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+            <FormGroup label="Weather">
+              <Select value={weather} onChange={e=>setWeather(e.target.value)}>
+                {["Clear / Sunny","Overcast","Light Rain","Heavy Rain","Extreme Heat"].map(w=><option key={w}>{w}</option>)}
+              </Select>
+            </FormGroup>
+            <FormGroup label="Personnel On-Site">
+              <Input type="number" value={personnel} onChange={e=>setPersonnel(e.target.value)} placeholder="e.g. 24" min="0" />
+            </FormGroup>
+          </div>
+
+          <SectionBlock label="A. WORK DONE" onAddRow={addWork}>
+            {work.length === 0
+              ? <div style={{ padding:"14px", fontFamily:"'DM Mono',monospace", fontSize:11, color:T.muted2, textAlign:"center" }}>No rows — click + Add Row</div>
+              : work.map((row,i) => (
+                <StructRow key={i} cols="1fr 90px 90px 28px" onRemove={()=>setWork(w=>w.filter((_,j)=>j!==i))}>
+                  <StructInput value={row.description} onChange={e=>{const w=[...work];w[i].description=e.target.value;setWork(w);}} placeholder="Work description" />
+                  <StructInput value={row.qty} onChange={e=>{const w=[...work];w[i].qty=e.target.value;setWork(w);}} placeholder="Qty" />
+                  <StructInput value={row.unit} onChange={e=>{const w=[...work];w[i].unit=e.target.value;setWork(w);}} placeholder="Unit" />
+                </StructRow>
+              ))
+            }
+          </SectionBlock>
+
+          <SectionBlock label="B. DELIVERIES" onAddRow={addDelivery}>
+            {deliveries.length === 0
+              ? <div style={{ padding:"14px", fontFamily:"'DM Mono',monospace", fontSize:11, color:T.muted2, textAlign:"center" }}>No rows — click + Add Row</div>
+              : deliveries.map((row,i) => (
+                <StructRow key={i} cols="1.4fr 80px 1fr 100px 28px" onRemove={()=>setDeliveries(d=>d.filter((_,j)=>j!==i))}>
+                  <StructInput value={row.material} onChange={e=>{const d=[...deliveries];d[i].material=e.target.value;setDeliveries(d);}} placeholder="Material" />
+                  <StructInput value={row.qty} onChange={e=>{const d=[...deliveries];d[i].qty=e.target.value;setDeliveries(d);}} placeholder="Qty" />
+                  <StructInput value={row.supplier} onChange={e=>{const d=[...deliveries];d[i].supplier=e.target.value;setDeliveries(d);}} placeholder="Supplier" />
+                  <StructSelect value={row.condition} onChange={e=>{const d=[...deliveries];d[i].condition=e.target.value;setDeliveries(d);}}>
+                    {["Good","Damaged","Partial","Rejected"].map(c=><option key={c}>{c}</option>)}
+                  </StructSelect>
+                </StructRow>
+              ))
+            }
+          </SectionBlock>
+
+          <SectionBlock label="D. PLANS" onAddRow={addPlan}>
+            {plans.length === 0
+              ? <div style={{ padding:"14px", fontFamily:"'DM Mono',monospace", fontSize:11, color:T.muted2, textAlign:"center" }}>No rows — click + Add Row</div>
+              : plans.map((row,i) => (
+                <StructRow key={i} cols="1fr 150px 28px" onRemove={()=>setPlans(p=>p.filter((_,j)=>j!==i))}>
+                  <StructInput value={row.activity} onChange={e=>{const p=[...plans];p[i].activity=e.target.value;setPlans(p);}} placeholder="Planned activity" />
+                  <StructInput type="date" value={row.expectedDate} onChange={e=>{const p=[...plans];p[i].expectedDate=e.target.value;setPlans(p);}} />
+                </StructRow>
+              ))
+            }
+          </SectionBlock>
+
+          <SectionBlock label="E. ISSUES / OBSERVATIONS" onAddRow={addIssue}>
+            {issues.length === 0
+              ? <div style={{ padding:"14px", fontFamily:"'DM Mono',monospace", fontSize:11, color:T.muted2, textAlign:"center" }}>No rows — click + Add Row</div>
+              : issues.map((row,i) => (
+                <StructRow key={i} cols="1fr 120px 28px" onRemove={()=>setIssues(is=>is.filter((_,j)=>j!==i))}>
+                  <StructInput value={row.description} onChange={e=>{const is=[...issues];is[i].description=e.target.value;setIssues(is);}} placeholder="Issue description" />
+                  <StructSelect value={row.severity} onChange={e=>{const is=[...issues];is[i].severity=e.target.value;setIssues(is);}}>
+                    {["LOW","MEDIUM","HIGH","CRITICAL"].map(s=><option key={s}>{s}</option>)}
+                  </StructSelect>
+                </StructRow>
+              ))
+            }
+          </SectionBlock>
+
+          <button onClick={submit} style={{ width:"100%", marginTop:24, background:T.amber, border:"none", color:T.black, padding:"15px", fontFamily:"'DM Sans',sans-serif", fontWeight:700, fontSize:14, cursor:"pointer", letterSpacing:1 }}>
+            SUBMIT ENTRY
+          </button>
+        </Modal>
+      );
+    }
+
+    /* ══════════════════════════════════════════════════════
+       DASHBOARD PAGE
+    ══════════════════════════════════════════════════════ */
+    function DashboardPage({ user, onNav, showToast, toggleTheme, effectiveTheme }) {
+      const canEdit = !["viewer"].includes(user?.role);
+      const [entries, setEntries] = useState([]);
+      const [projects, setProjects] = useState([]);
+      const [filterProj, setFilterProj] = useState("");
+      const [filterFrom, setFilterFrom] = useState("");
+      const [filterTo, setFilterTo] = useState("");
+      const [showNewEntry, setShowNewEntry] = useState(false);
+
+      useEffect(() => {
+        const allEntries  = LS.get(KEYS.entries, []).filter(e => !user || !e.userId || e.userId === user.id);
+        const allProjects = LS.get(KEYS.projects,[]).filter(p => !user || !p.userId || p.userId === user.id);
+        setEntries(allEntries);
+        setProjects(allProjects);
+      }, [showNewEntry, user]);
+
+      const filtered = useMemo(() => entries.filter(e => {
+        if (filterProj && e.projectId !== filterProj && e.project !== filterProj) return false;
+        if (filterFrom && e.date < filterFrom) return false;
+        if (filterTo   && e.date > filterTo)   return false;
+        return true;
+      }), [entries, filterProj, filterFrom, filterTo]);
+
+      const totalDeliveries = filtered.reduce((s,e) => s+(parseInt(e.deliveries)||0), 0);
+      const issueEntries    = filtered.filter(e => e.severity);
+      const withWork        = filtered.filter(e => e.work?.trim()).length;
+      const progress        = filtered.length > 0 ? Math.min(100, Math.round(withWork/filtered.length*100)) : 0;
+
+      const d = new Date();
+      const days=["SUN","MON","TUE","WED","THU","FRI","SAT"];
+      const months=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+      const dateStr = `${days[d.getDay()]} · ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+
+      function clearData() {
+        if (!window.confirm("Delete all entries? This cannot be undone.")) return;
+        const all = LS.get(KEYS.entries,[]).filter(e => e.userId && e.userId !== user.id);
+        LS.set(KEYS.entries, all);
+        setEntries(LS.get(KEYS.entries,[]).filter(e => !user || !e.userId || e.userId===user.id));
+        showToast("All entries cleared","info");
+      }
+
+      return (
+        <AppLayout page="dashboard" onNav={onNav} user={user} onLogout={() => { LS.del(KEYS.session); onNav("landing"); }} toggleTheme={toggleTheme} effectiveTheme={effectiveTheme}>
+          {(setMob, toggleTheme, effectiveTheme) => (
+            <>
+              <Topbar breadcrumb="Dashboard" onHamburger={() => setMob(o=>!o)} toggleTheme={toggleTheme} effectiveTheme={effectiveTheme}
+                right={canEdit && <TopbarBtn onClick={() => setShowNewEntry(true)}>+ New Entry</TopbarBtn>} />
+              <Content>
+                <div style={{ fontFamily:"'DM Mono',monospace", fontSize:11, letterSpacing:"1.5px", color:T.amber, marginBottom:4 }}>
+                  Welcome back, {user?.firstName} · Week {getWeekNum(d)}
+                </div>
+                <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", marginBottom:28 }}>
+                  <h1 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:42, letterSpacing:1 }}>DASHBOARD</h1>
+                  <span style={{ fontFamily:"'DM Mono',monospace", fontSize:12, color:T.muted }}>{dateStr}</span>
+                </div>
+
+                {!canEdit && (
+                  <div style={{ display:"flex", alignItems:"center", gap:10, padding:"12px 16px", background:"rgba(245,158,11,0.06)", border:`1px solid rgba(245,158,11,0.2)`, marginBottom:20, fontSize:13, color:T.muted }}>
+                    🔒 <span>Signed in as <strong style={{ color:T.amber }}>{user?.role?.toUpperCase()}</strong> — read-only access.</span>
+                  </div>
+                )}
+
+                <div style={{ display:"flex", alignItems:"flex-end", gap:14, flexWrap:"wrap", padding:"16px 20px", background:T.panel, border:`1px solid ${T.border}`, marginBottom:24 }}>
+                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                    <span style={{ fontFamily:"'DM Mono',monospace", fontSize:10, letterSpacing:"1px", color:T.muted, textTransform:"uppercase" }}>Project</span>
+                    <Select value={filterProj} onChange={e=>setFilterProj(e.target.value)} style={{ height:38, fontSize:13, padding:"8px 14px", minWidth:160, clipPath:"none" }}>
+                      <option value="">All Projects</option>
+                      {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </Select>
+                  </div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                    <span style={{ fontFamily:"'DM Mono',monospace", fontSize:10, letterSpacing:"1px", color:T.muted, textTransform:"uppercase" }}>From</span>
+                    <Input type="date" value={filterFrom} onChange={e=>setFilterFrom(e.target.value)} style={{ height:38, fontSize:13, padding:"8px 14px", clipPath:"none" }} />
+                  </div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                    <span style={{ fontFamily:"'DM Mono',monospace", fontSize:10, letterSpacing:"1px", color:T.muted, textTransform:"uppercase" }}>To</span>
+                    <Input type="date" value={filterTo} onChange={e=>setFilterTo(e.target.value)} style={{ height:38, fontSize:13, padding:"8px 14px", clipPath:"none" }} />
+                  </div>
+                  <button onClick={() => { setFilterProj(""); setFilterFrom(""); setFilterTo(""); }} style={{ background:"none", border:`1px solid ${T.border}`, color:T.muted, padding:"9px 16px", fontSize:12, fontFamily:"'DM Mono',monospace", cursor:"pointer", alignSelf:"flex-end", height:38 }}>CLEAR</button>
+                </div>
+
+                <div className="sd-kpi-grid" style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16, marginBottom:24 }}>
+                  <KpiCard label="Total Entries"   value={filtered.length}     sub={filtered.length===0?"No entries yet":"+"+filtered.filter(e=>e.date===todayStr(-1)).length+" since yesterday"} color={T.amber} />
+                  <KpiCard label="Deliveries"      value={totalDeliveries}     sub={totalDeliveries===0?"No deliveries logged":"Across all filtered entries"} color={T.teal} />
+                  <KpiCard label="Open Issues"     value={issueEntries.length} sub={issueEntries.length===0?"No issues raised":"Click to view details"} color={T.red} />
+                  <KpiCard label="Work Completion" value={progress+"%"}        sub={"Entries with work logged"} color={T.purple} />
+                </div>
+
+                <div className="sd-dashboard-bottom" style={{ display:"grid", gridTemplateColumns:"1.5fr 1fr", gap:20 }}>
+                  <PanelCard>
+                    <PanelHeader title="RECENT ENTRIES" badge="LIVE FEED" />
+                    {filtered.length === 0
+                      ? <Placeholder icon="📝" title="NO ENTRIES YET" desc="Start logging daily site activities to see them here." tag="GET STARTED" />
+                      : filtered.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5).map(e => (
+                        <div key={e.id} style={{ display:"flex", alignItems:"flex-start", gap:14, padding:"13px 0", borderBottom:`1px solid ${T.border}` }}>
+                          <div style={{ fontFamily:"'DM Mono',monospace", fontSize:10, color:T.amber, minWidth:80, paddingTop:2 }}>{e.date}</div>
+                          <div style={{ flex:1, minWidth:0 }}>
+                            <div style={{ fontSize:13.5, fontWeight:500, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                              {projects.find(p=>p.id===e.projectId)?.name || e.project || "—"}
+                            </div>
+                            <div style={{ fontSize:12, color:T.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", marginTop:2 }}>
+                              {e.work || "No work summary"}
+                            </div>
+                          </div>
+                          {e.severity && <SevBadge sev={e.severity} />}
+                        </div>
+                      ))
+                    }
+                  </PanelCard>
+                  <PanelCard>
+                    <PanelHeader title="QUICK ACTIONS" />
+                    <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                      {canEdit && (
+                        <div onClick={() => setShowNewEntry(true)} style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 16px", background:T.panel2, border:`1px solid ${T.border}`, cursor:"pointer", transition:"border-color 0.2s" }}
+                          onMouseEnter={e=>e.currentTarget.style.borderColor=T.amber} onMouseLeave={e=>e.currentTarget.style.borderColor=T.border}>
+                          <span style={{ fontSize:22 }}>✏️</span>
+                          <div><div style={{ fontFamily:"'DM Mono',monospace", fontSize:11, letterSpacing:1, marginBottom:2 }}>NEW ENTRY</div><div style={{ fontSize:12, color:T.muted }}>Log today's site activity</div></div>
+                        </div>
+                      )}
+                      <div onClick={() => onNav("projects")} style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 16px", background:T.panel2, border:`1px solid ${T.border}`, cursor:"pointer", transition:"border-color 0.2s" }}
+                        onMouseEnter={e=>e.currentTarget.style.borderColor=T.amber} onMouseLeave={e=>e.currentTarget.style.borderColor=T.border}>
+                        <span style={{ fontSize:22 }}>📁</span>
+                        <div><div style={{ fontFamily:"'DM Mono',monospace", fontSize:11, letterSpacing:1, marginBottom:2 }}>ADD PROJECT</div><div style={{ fontSize:12, color:T.muted }}>Set up a new site project</div></div>
+                      </div>
+                      <div onClick={() => onNav("reports")} style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 16px", background:T.panel2, border:`1px solid ${T.border}`, cursor:"pointer", transition:"border-color 0.2s" }}
+                        onMouseEnter={e=>e.currentTarget.style.borderColor=T.amber} onMouseLeave={e=>e.currentTarget.style.borderColor=T.border}>
+                        <span style={{ fontSize:22 }}>📊</span>
+                        <div><div style={{ fontFamily:"'DM Mono',monospace", fontSize:11, letterSpacing:1, marginBottom:2 }}>REPORTS</div><div style={{ fontSize:12, color:T.muted }}>Generate or view reports</div></div>
+                      </div>
+                      {user?.role === "admin" && (
+                        <div onClick={clearData} style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 16px", background:"rgba(239,68,68,0.04)", border:`1px solid rgba(239,68,68,0.15)`, cursor:"pointer", transition:"border-color 0.2s" }}
+                          onMouseEnter={e=>e.currentTarget.style.borderColor=T.red} onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(239,68,68,0.15)"}>
+                          <span style={{ fontSize:22 }}>🗑️</span>
+                          <div><div style={{ fontFamily:"'DM Mono',monospace", fontSize:11, letterSpacing:1, marginBottom:2, color:T.red }}>CLEAR DATA</div><div style={{ fontSize:12, color:T.muted }}>Reset all entries</div></div>
+                        </div>
+                      )}
+                    </div>
+                  </PanelCard>
+                </div>
+              </Content>
+              {showNewEntry && <NewEntryModal user={user} projects={projects} onClose={() => setShowNewEntry(false)} showToast={showToast} />}
+            </>
+          )}
+        </AppLayout>
+      );
+    }
+
+    /* ══════════════════════════════════════════════════════
+       PROJECTS PAGE
+    ══════════════════════════════════════════════════════ */
+    function ProjectsPage({ user, onNav, showToast, toggleTheme, effectiveTheme }) {
+      const [projects, setProjects] = useState([]);
+      const [search, setSearch]     = useState("");
+      const [filter, setFilter]     = useState("ALL");
+      const [form, setForm]         = useState({ name:"", location:"", start:"", status:"ACTIVE", desc:"" });
+      const [editModal, setEditModal] = useState(null);
+      const canEdit = !["viewer"].includes(user?.role);
+
+      const refresh = useCallback(() => {
+        setProjects(LS.get(KEYS.projects,[]).filter(p => !p.userId || p.userId === user?.id));
+      }, [user]);
+      useEffect(() => { refresh(); }, [refresh]);
+
+      const entries = LS.get(KEYS.entries,[]);
+      function projEntries(pid) { return entries.filter(e=>e.projectId===pid); }
+
+      function createProject() {
+        if (!form.name || !form.location || !form.start) { showToast("Name, location and start date are required","error"); return; }
+        const proj = { id:uid(), userId:user?.id, name:form.name, location:form.location, startDate:form.start, status:form.status, description:form.desc, createdAt:Date.now() };
+        const all = LS.get(KEYS.projects,[]);
+        all.push(proj);
+        LS.set(KEYS.projects, all);
+        refresh();
+        setForm({ name:"", location:"", start:"", status:"ACTIVE", desc:"" });
+        showToast("Project created!","success");
+      }
+
+      function deleteProject(id) {
+        if (!window.confirm("Delete this project?")) return;
+        LS.set(KEYS.projects, LS.get(KEYS.projects,[]).filter(p=>p.id!==id));
+        refresh();
+        showToast("Project deleted","info");
+      }
+
+      function saveEdit() {
+        const all = LS.get(KEYS.projects,[]).map(p => p.id===editModal.id ? { ...p, ...editModal } : p);
+        LS.set(KEYS.projects, all);
+        refresh();
+        setEditModal(null);
+        showToast("Project updated","success");
+      }
+
+      const filtered = projects.filter(p => {
+        if (filter !== "ALL" && p.status !== filter) return false;
+        if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !p.location?.toLowerCase().includes(search.toLowerCase())) return false;
+        return true;
+      });
+
+      const statusColor = {
+        ACTIVE:    {c:T.amber,bg:T.amberGlow,bc:"rgba(245,158,11,0.3)"},
+        COMPLETED: {c:T.green,bg:"rgba(34,197,94,0.08)",bc:"rgba(34,197,94,0.3)"},
+        ON_HOLD:   {c:T.muted,bg:"transparent",bc:T.border}
+      };
+
+      return (
+        <AppLayout page="projects" onNav={onNav} user={user} onLogout={() => { LS.del(KEYS.session); onNav("landing"); }} toggleTheme={toggleTheme} effectiveTheme={effectiveTheme}>
+          {(setMob, toggleTheme, effectiveTheme) => (
+            <>
+              <Topbar breadcrumb="Projects" onHamburger={() => setMob(o=>!o)} toggleTheme={toggleTheme} effectiveTheme={effectiveTheme}
+                right={canEdit && <TopbarBtn onClick={() => document.getElementById("proj-name-input")?.focus()}>+ New Project</TopbarBtn>} />
+              <Content>
+                <PageTitle eyebrow="Site Management" title="YOUR" accent="PROJECTS" />
+
+                {canEdit && (
+                  <PanelCard>
+                    <PanelHeader title="CREATE PROJECT" badge="NEW SITE" />
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+                      <FormGroup label="Project Name *"><Input id="proj-name-input" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="e.g. North Bridge Expansion" /></FormGroup>
+                      <FormGroup label="Location *"><Input value={form.location} onChange={e=>setForm(f=>({...f,location:e.target.value}))} placeholder="e.g. Lagos, Nigeria" /></FormGroup>
+                    </div>
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+                      <FormGroup label="Start Date *"><Input type="date" value={form.start} onChange={e=>setForm(f=>({...f,start:e.target.value}))} /></FormGroup>
+                      <FormGroup label="Status">
+                        <Select value={form.status} onChange={e=>setForm(f=>({...f,status:e.target.value}))}>
+                          <option value="ACTIVE">Active</option>
+                          <option value="ON_HOLD">On Hold</option>
+                          <option value="COMPLETED">Completed</option>
+                        </Select>
+                      </FormGroup>
+                    </div>
+                    <FormGroup label="Description">
+                      <Textarea value={form.desc} onChange={e=>setForm(f=>({...f,desc:e.target.value}))} placeholder="Brief project description (optional)..." rows={2} />
+                    </FormGroup>
+                    <Btn variant="primary" onClick={createProject}>+ CREATE PROJECT</Btn>
+                  </PanelCard>
+                )}
+
+                <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20, flexWrap:"wrap" }}>
+                  <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search projects..."
+                    style={{ flex:1, maxWidth:320, background:T.panel, border:`1px solid ${T.border}`, color:T.white, padding:"10px 16px", fontSize:13, outline:"none" }}
+                    onFocus={e=>e.target.style.borderColor=T.amber} onBlur={e=>e.target.style.borderColor=T.border} />
+                  {["ALL","ACTIVE","COMPLETED","ON_HOLD"].map(f => (
+                    <button key={f} onClick={()=>setFilter(f)} style={{ padding:"8px 16px", border:`1px solid ${filter===f?T.amber:T.border}`, fontFamily:"'DM Mono',monospace", fontSize:11, letterSpacing:"0.5px", color:filter===f?T.amber:T.muted, cursor:"pointer", background:filter===f?T.amberGlow:"none", transition:"all 0.15s" }}>
+                      {f.replace("_"," ")}
+                    </button>
+                  ))}
+                </div>
+
+                {filtered.length === 0
+                  ? <Placeholder icon="📁" title="NO PROJECTS" desc={canEdit ? "Create your first project above to get started." : "No projects found."} tag="GET STARTED" />
+                  : <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))", gap:20 }}>
+                      {filtered.map(p => {
+                        const sc = statusColor[p.status] || statusColor.ON_HOLD;
+                        const pe = projEntries(p.id);
+                        return (
+                          <div key={p.id} style={{ background:T.panel, border:`1px solid ${T.border}`, padding:20, transition:"border-color 0.2s" }}
+                            onMouseEnter={e=>e.currentTarget.style.borderColor=T.amber} onMouseLeave={e=>e.currentTarget.style.borderColor=T.border}>
+                            <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:12 }}>
+                              <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:18, letterSpacing:"0.5px", flex:1, marginRight:8 }}>{p.name}</div>
+                              <span style={{ fontFamily:"'DM Mono',monospace", fontSize:9, letterSpacing:1, color:sc.c, padding:"3px 8px", border:`1px solid ${sc.bc}`, background:sc.bg, whiteSpace:"nowrap" }}>{p.status.replace("_"," ")}</span>
+                            </div>
+                            <div style={{ fontSize:12, color:T.muted, marginBottom:6 }}>📍 {p.location}</div>
+                            <div style={{ fontSize:12, color:T.muted, marginBottom:12 }}>📅 Started {p.startDate}</div>
+                            {p.description && <div style={{ fontSize:12.5, color:T.muted2, marginBottom:14, lineHeight:1.6 }}>{p.description}</div>}
+                            <div style={{ display:"flex", gap:12, padding:"10px 0", borderTop:`1px solid ${T.border}`, borderBottom:`1px solid ${T.border}`, marginBottom:14 }}>
+                              <div style={{ flex:1, textAlign:"center" }}>
+                                <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:22 }}>{pe.length}</div>
+                                <div style={{ fontFamily:"'DM Mono',monospace", fontSize:9, letterSpacing:1, color:T.muted2 }}>ENTRIES</div>
+                              </div>
+                              <div style={{ flex:1, textAlign:"center" }}>
+                                <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:22 }}>{pe.reduce((s,e)=>s+(parseInt(e.deliveries)||0),0)}</div>
+                                <div style={{ fontFamily:"'DM Mono',monospace", fontSize:9, letterSpacing:1, color:T.muted2 }}>DELIVERIES</div>
+                              </div>
+                              <div style={{ flex:1, textAlign:"center" }}>
+                                <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:22 }}>{pe.filter(e=>e.severity).length}</div>
+                                <div style={{ fontFamily:"'DM Mono',monospace", fontSize:9, letterSpacing:1, color:T.muted2 }}>ISSUES</div>
+                              </div>
+                            </div>
+                            {canEdit && (
+                              <div style={{ display:"flex", gap:8 }}>
+                                <button onClick={() => setEditModal({ ...p })} style={{ flex:1, background:"none", border:`1px solid ${T.border}`, color:T.muted, padding:"8px", fontSize:12, cursor:"pointer", transition:"all 0.15s" }}
+                                  onMouseEnter={e=>{e.currentTarget.style.borderColor=T.amber;e.currentTarget.style.color=T.amber;}} onMouseLeave={e=>{e.currentTarget.style.borderColor=T.border;e.currentTarget.style.color=T.muted;}}>EDIT</button>
+                                <button onClick={() => deleteProject(p.id)} style={{ flex:1, background:"none", border:`1px solid rgba(239,68,68,0.25)`, color:T.red, padding:"8px", fontSize:12, cursor:"pointer", transition:"all 0.15s" }}
+                                  onMouseEnter={e=>e.currentTarget.style.background="rgba(239,68,68,0.08)"} onMouseLeave={e=>e.currentTarget.style.background="none"}>DELETE</button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                }
+              </Content>
+
+              {editModal && (
+                <Modal open onClose={() => setEditModal(null)} title="EDIT PROJECT" maxWidth={540}>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+                    <FormGroup label="Project Name *"><Input value={editModal.name} onChange={e=>setEditModal(m=>({...m,name:e.target.value}))} /></FormGroup>
+                    <FormGroup label="Location *"><Input value={editModal.location} onChange={e=>setEditModal(m=>({...m,location:e.target.value}))} /></FormGroup>
+                  </div>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+                    <FormGroup label="Start Date"><Input type="date" value={editModal.startDate} onChange={e=>setEditModal(m=>({...m,startDate:e.target.value}))} /></FormGroup>
+                    <FormGroup label="Status">
+                      <Select value={editModal.status} onChange={e=>setEditModal(m=>({...m,status:e.target.value}))}>
+                        <option value="ACTIVE">Active</option><option value="ON_HOLD">On Hold</option><option value="COMPLETED">Completed</option>
+                      </Select>
+                    </FormGroup>
+                  </div>
+                  <FormGroup label="Description">
+                    <Textarea value={editModal.description||""} onChange={e=>setEditModal(m=>({...m,description:e.target.value}))} rows={2} />
+                  </FormGroup>
+                  <div style={{ display:"flex", gap:10 }}>
+                    <Btn variant="primary" onClick={saveEdit} style={{ flex:1, justifyContent:"center" }}>SAVE CHANGES</Btn>
+                    <Btn variant="outline" onClick={() => setEditModal(null)}>CANCEL</Btn>
+                  </div>
+                </Modal>
+              )}
+            </>
+          )}
+        </AppLayout>
+      );
+    }
+
+    /* ══════════════════════════════════════════════════════
+       REPORTS PAGE
+    ══════════════════════════════════════════════════════ */
+    function ReportsPage({ user, onNav, showToast, toggleTheme, effectiveTheme }) {
+      const [rptType, setRptType] = useState("weekly");
+      const [projFilter, setProjFilter] = useState("");
+      const [projects, setProjects] = useState([]);
+      const [report, setReport] = useState(null);
+      const [loading, setLoading] = useState(false);
+
+      useEffect(() => {
+        setProjects(LS.get(KEYS.projects,[]).filter(p=>!p.userId||p.userId===user?.id));
+      }, [user]);
+
+      const periods = { weekly:7, biweekly:14, monthly:30, annual:365 };
+      const periodLabels = { weekly:"Last 7 days", biweekly:"Last 14 days", monthly:"Last 30 days", annual:"Last 12 months" };
+
+      function generate() {
+        setLoading(true);
+        setTimeout(() => {
+          const days = periods[rptType];
+          const from = todayStr(-days);
+          const allEntries = LS.get(KEYS.entries,[]).filter(e=>!e.userId||e.userId===user?.id);
+          const filteredE = allEntries.filter(e => {
+            if (projFilter && e.projectId !== projFilter) return false;
+            return e.date >= from;
+          });
+          const proj = projects.find(p=>p.id===projFilter);
+          const issues = { LOW:0, MEDIUM:0, HIGH:0, CRITICAL:0 };
+          filteredE.forEach(e => { if (e.severity && issues[e.severity]!==undefined) issues[e.severity]++; });
+          const totalPersonnel  = filteredE.reduce((s,e)=>s+(parseInt(e.personnel)||0),0);
+          const totalDeliveries = filteredE.reduce((s,e)=>s+(parseInt(e.deliveries)||0),0);
+          const withWork = filteredE.filter(e=>e.work?.trim()).length;
+          setReport({
+            type: rptType,
+            projectName: proj?.name || "All Projects",
+            period: { label: periodLabels[rptType] },
+            generatedAt: new Date(),
+            totalEntries: filteredE.length,
+            totalDeliveries,
+            totalPersonnel,
+            issues,
+            totalIssues: Object.values(issues).reduce((a,b)=>a+b,0),
+            progress: filteredE.length > 0 ? Math.min(100, Math.round(withWork/filteredE.length*100)) : 0,
+            entries: filteredE.sort((a,b)=>b.date.localeCompare(a.date)),
+          });
+          setLoading(false);
+          showToast("Report generated","success");
+        }, 600);
+      }
+
+      const typeIcons = { weekly:"📋", biweekly:"📅", monthly:"🗓️", annual:"📆" };
+
+      return (
+        <AppLayout page="reports" onNav={onNav} user={user} onLogout={() => { LS.del(KEYS.session); onNav("landing"); }} toggleTheme={toggleTheme} effectiveTheme={effectiveTheme}>
+          {(setMob, toggleTheme, effectiveTheme) => (
+            <>
+              <Topbar breadcrumb="Reports" onHamburger={() => setMob(o=>!o)} toggleTheme={toggleTheme} effectiveTheme={effectiveTheme} right={<TopbarBtn onClick={generate}>⚡ Generate Report</TopbarBtn>} />
+              <Content>
+                <PageTitle eyebrow="Report Centre" title="GENERATE" accent="REPORTS" />
+
+                <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginBottom:24 }}>
+                  {Object.entries(typeIcons).map(([t,icon]) => (
+                    <div key={t} onClick={() => setRptType(t)} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4, padding:"14px 22px", border:`1px solid ${rptType===t?"rgba(245,158,11,0.5)":T.border}`, cursor:"pointer", minWidth:100, transition:"all 0.18s", clipPath:"polygon(0 0, 90% 0, 100% 14%, 100% 100%, 10% 100%, 0 86%)", background:rptType===t?T.amberGlow:T.panel, position:"relative" }}>
+                      {rptType===t && <div style={{ position:"absolute", top:0, left:0, right:0, height:2, background:T.amber }} />}
+                      <span style={{ fontSize:22 }}>{icon}</span>
+                      <span style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:16, letterSpacing:1, color:rptType===t?T.amber:T.white }}>{t.toUpperCase()}</span>
+                      <span style={{ fontFamily:"'DM Mono',monospace", fontSize:9, letterSpacing:1, color:T.muted2 }}>{periodLabels[t]}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display:"flex", alignItems:"flex-end", gap:14, flexWrap:"wrap", padding:"16px 20px", background:T.panel, border:`1px solid ${T.border}`, marginBottom:24 }}>
+                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                    <span style={{ fontFamily:"'DM Mono',monospace", fontSize:10, letterSpacing:"1px", color:T.muted, textTransform:"uppercase" }}>Project Filter</span>
+                    <Select value={projFilter} onChange={e=>setProjFilter(e.target.value)} style={{ height:38, fontSize:13, padding:"8px 14px", minWidth:200, clipPath:"none" }}>
+                      <option value="">All Projects</option>
+                      {projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
+                    </Select>
+                  </div>
+                  <button onClick={generate} disabled={loading} style={{ display:"inline-flex", alignItems:"center", gap:8, background:T.amber, color:T.black, border:"none", padding:"10px 24px", fontFamily:"'DM Sans',sans-serif", fontWeight:700, fontSize:13, cursor:loading?"not-allowed":"pointer", clipPath:"polygon(0 0, 92% 0, 100% 20%, 100% 100%, 8% 100%, 0 80%)", opacity:loading?0.6:1, alignSelf:"flex-end" }}>
+                    {loading ? "GENERATING…" : "⚡ GENERATE"}
+                  </button>
+                </div>
+
+                {!report
+                  ? <Placeholder icon="📊" title="SELECT & GENERATE" desc="Choose a report type and project filter, then click Generate to build your report." tag="READY" />
+                  : (
+                    <div style={{ animation:"slideUp 0.3s ease" }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 16px", background:T.amberGlow, border:`1px solid rgba(245,158,11,0.2)`, marginBottom:20, fontFamily:"'DM Mono',monospace", fontSize:11, letterSpacing:"0.5px", color:T.amber }}>
+                        📅 {report.period.label} · {report.projectName} · Generated {report.generatedAt.toLocaleString()}
+                      </div>
+                      <div className="sd-kpi-grid" style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:14, marginBottom:24 }}>
+                        <KpiCard label="Total Entries"    value={report.totalEntries}    sub="in period" color={T.amber} />
+                        <KpiCard label="Total Deliveries" value={report.totalDeliveries} sub="across entries" color={T.teal} />
+                        <KpiCard label="Total Issues"     value={report.totalIssues}     sub="severity tracked" color={T.red} />
+                        <KpiCard label="Work Completion"  value={report.progress+"%"}    sub="entries with work" color={T.purple} />
+                      </div>
+                      <PanelCard style={{ marginBottom:20 }}>
+                        <PanelHeader title="ISSUES BREAKDOWN" />
+                        <div className="sd-kpi-grid" style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10 }}>
+                          {["LOW","MEDIUM","HIGH","CRITICAL"].map((sev,idx) => {
+                            const colors = [T.green, T.amber, T.red, "#ff6b6b"];
+                            const total = Object.values(report.issues).reduce((a,b)=>a+b,0) || 1;
+                            return (
+                              <div key={sev} style={{ display:"flex", flexDirection:"column", gap:4, padding:"12px 14px", border:`1px solid ${T.border}`, background:T.panel2 }}>
+                                <div style={{ fontFamily:"'DM Mono',monospace", fontSize:9, letterSpacing:"1.5px", textTransform:"uppercase", color:colors[idx] }}>{sev}</div>
+                                <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:28, color:T.white }}>{report.issues[sev]}</div>
+                                <div style={{ height:3, background:T.border, borderRadius:2 }}>
+                                  <div style={{ height:"100%", borderRadius:2, background:colors[idx], width:`${(report.issues[sev]/total)*100}%`, transition:"width 0.6s ease" }} />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </PanelCard>
+                      <PanelCard>
+                        <PanelHeader title="ENTRY LOG" badge={`${report.entries.length} ENTRIES`} />
+                        {report.entries.length === 0
+                          ? <Placeholder icon="📋" title="NO ENTRIES" desc="No entries found for this period and filter." />
+                          : (
+                            <div style={{ overflowX:"auto" }}>
+                              <table style={{ width:"100%", borderCollapse:"collapse", fontSize:12 }}>
+                                <thead>
+                                  <tr>
+                                    {["Date","Project","Work Summary","Weather","Personnel","Deliveries","Severity"].map(h => (
+                                      <th key={h} style={{ fontFamily:"'DM Mono',monospace", fontSize:10, letterSpacing:"1.2px", textTransform:"uppercase", color:T.muted, padding:"10px 14px", textAlign:"left", borderBottom:`1px solid ${T.border}`, whiteSpace:"nowrap" }}>{h}</th>
+                                    ))}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {report.entries.map(e => (
+                                    <tr key={e.id} style={{ transition:"background 0.15s" }}
+                                      onMouseEnter={ev=>ev.currentTarget.style.background=T.amberGlow} onMouseLeave={ev=>ev.currentTarget.style.background="none"}>
+                                      <td style={{ padding:"9px 14px", borderBottom:`1px solid ${T.border}`, fontFamily:"'DM Mono',monospace", fontSize:11, color:T.amber }}>{e.date}</td>
+                                      <td style={{ padding:"9px 14px", borderBottom:`1px solid ${T.border}`, fontFamily:"'DM Mono',monospace", fontSize:10, color:T.amber }}>{projects.find(p=>p.id===e.projectId)?.name||e.project||"—"}</td>
+                                      <td style={{ padding:"9px 14px", borderBottom:`1px solid ${T.border}`, color:T.muted, maxWidth:240, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{e.work||"—"}</td>
+                                      <td style={{ padding:"9px 14px", borderBottom:`1px solid ${T.border}`, color:T.muted }}>{e.weather||"—"}</td>
+                                      <td style={{ padding:"9px 14px", borderBottom:`1px solid ${T.border}`, fontFamily:"'DM Mono',monospace", textAlign:"center" }}>{e.personnel||0}</td>
+                                      <td style={{ padding:"9px 14px", borderBottom:`1px solid ${T.border}`, fontFamily:"'DM Mono',monospace", textAlign:"center" }}>{e.deliveries||0}</td>
+                                      <td style={{ padding:"9px 14px", borderBottom:`1px solid ${T.border}` }}>{e.severity?<SevBadge sev={e.severity}/>:"—"}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )
+                        }
+                      </PanelCard>
+                    </div>
+                  )
+                }
+              </Content>
+            </>
+          )}
+        </AppLayout>
+      );
+    }
+
+    /* ══════════════════════════════════════════════════════
+       NEW ENTRY PAGE
+    ══════════════════════════════════════════════════════ */
+    function NewEntryPage({ user, onNav, showToast, toggleTheme, effectiveTheme }) {
+      const [open, setOpen] = useState(false);
+      const projects = LS.get(KEYS.projects,[]).filter(p=>!p.userId||p.userId===user?.id);
+      return (
+        <AppLayout page="new-entry" onNav={onNav} user={user} onLogout={() => { LS.del(KEYS.session); onNav("landing"); }} toggleTheme={toggleTheme} effectiveTheme={effectiveTheme}>
+          {(setMob, toggleTheme, effectiveTheme) => (
+            <>
+              <Topbar breadcrumb="New Entry" onHamburger={() => setMob(o=>!o)} toggleTheme={toggleTheme} effectiveTheme={effectiveTheme} />
+              <Content>
+                <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"60vh", textAlign:"center", gap:16 }}>
+                  <div style={{ fontSize:48, opacity:0.3 }}>✏️</div>
+                  <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:36, letterSpacing:1 }}>LOG A SITE ENTRY</div>
+                  <div style={{ fontSize:14, color:T.muted, maxWidth:340, lineHeight:1.6 }}>
+                    Use the full entry modal to log today's work, deliveries, issues, and plans.
+                  </div>
+                  <button onClick={() => setOpen(true)} style={{ marginTop:8, background:T.amber, border:"none", color:T.black, padding:"14px 32px", fontFamily:"'DM Sans',sans-serif", fontWeight:700, fontSize:14, cursor:"pointer" }}>
+                    + OPEN ENTRY FORM
+                  </button>
+                </div>
+              </Content>
+              {open && <NewEntryModal user={user} projects={projects} onClose={() => setOpen(false)} showToast={showToast} />}
+            </>
+          )}
+        </AppLayout>
+      );
+    }
+
+    /* ══════════════════════════════════════════════════════
+       SETTINGS PAGE
+    ══════════════════════════════════════════════════════ */
+    function SettingsPage({ user, setUser, onNav, showToast, toggleTheme, effectiveTheme }) {
+      const [tab, setTab] = useState("profile");
+      const [profile, setProfile] = useState({ firstName:user?.firstName||"", lastName:user?.lastName||"", email:user?.email||"", org:user?.org||"" });
+
+      function saveProfile() {
+        if (!profile.firstName || !profile.email) { showToast("Name and email required","error"); return; }
+        const users = LS.get(KEYS.users,[]).map(u => u.id===user?.id ? { ...u, ...profile } : u);
+        LS.set(KEYS.users, users);
+        const updated = { ...user, ...profile };
+        LS.set(KEYS.session, updated);
+        setUser(updated);
+        showToast("Profile saved","success");
+      }
+
+      const tabs = [
+        { id:"profile",  label:"Profile" },
+        { id:"security", label:"Security" },
+        { id:"app",      label:"App Settings" },
+      ];
+
+      return (
+        <AppLayout page="settings" onNav={onNav} user={user} onLogout={() => { LS.del(KEYS.session); onNav("landing"); }} toggleTheme={toggleTheme} effectiveTheme={effectiveTheme}>
+          {(setMob, toggleTheme, effectiveTheme) => (
+            <>
+              <Topbar breadcrumb="Settings" onHamburger={() => setMob(o=>!o)} toggleTheme={toggleTheme} effectiveTheme={effectiveTheme} />
+              <Content>
+                <PageTitle eyebrow="Preferences" title="SETTINGS" />
+                <div className="sd-settings-layout" style={{ display:"grid", gridTemplateColumns:"200px 1fr", gap:24, alignItems:"start" }}>
+                  <div className="sd-settings-tabs" style={{ display:"flex", flexDirection:"column", gap:2 }}>
+                    {tabs.map(t => (
+                      <div key={t.id} onClick={() => setTab(t.id)} style={{ padding:"11px 14px", color:tab===t.id?T.amber:T.muted, fontSize:13.5, cursor:"pointer", borderRadius:3, transition:"all 0.15s", border:`1px solid ${tab===t.id?"rgba(245,158,11,0.15)":"transparent"}`, background:tab===t.id?T.amberGlow:"none" }}>
+                        {t.label}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div>
+                    {tab === "profile" && (
+                      <PanelCard>
+                        <PanelHeader title="PROFILE" badge="PERSONAL INFO" />
+                        <div style={{ display:"flex", alignItems:"center", gap:20, marginBottom:28, paddingBottom:24, borderBottom:`1px solid ${T.border}` }}>
+                          <div style={{ width:64, height:64, background:T.amber, borderRadius:"50%", display:"grid", placeItems:"center", fontFamily:"'Bebas Neue',sans-serif", fontSize:28, color:T.black, flexShrink:0 }}>
+                            {(user?.firstName?.[0]||"") + (user?.lastName?.[0]||"")}
+                          </div>
+                          <div>
+                            <div style={{ fontFamily:"'DM Mono',monospace", fontSize:11, letterSpacing:"0.5px", color:T.muted, marginTop:6 }}>Avatar uses your initials</div>
+                          </div>
+                        </div>
+                        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+                          <FormGroup label="First Name"><Input value={profile.firstName} onChange={e=>setProfile(p=>({...p,firstName:e.target.value}))} /></FormGroup>
+                          <FormGroup label="Last Name"> <Input value={profile.lastName}  onChange={e=>setProfile(p=>({...p,lastName:e.target.value}))} /></FormGroup>
+                        </div>
+                        <FormGroup label="Email"><Input type="email" value={profile.email} onChange={e=>setProfile(p=>({...p,email:e.target.value}))} /></FormGroup>
+                        <FormGroup label="Organisation"><Input value={profile.org} onChange={e=>setProfile(p=>({...p,org:e.target.value}))} /></FormGroup>
+                        <FormGroup label="Role">
+                          <div style={{ fontFamily:"'DM Mono',monospace", fontSize:12, color:T.amber, padding:"10px 0" }}>{user?.role?.toUpperCase() || "—"}</div>
+                        </FormGroup>
+                        <button onClick={saveProfile} style={{ background:T.amber, border:"none", color:T.black, padding:"13px 28px", fontFamily:"'DM Sans',sans-serif", fontWeight:700, fontSize:14, cursor:"pointer", clipPath:"polygon(0 0, 92% 0, 100% 16%, 100% 100%, 8% 100%, 0 84%)" }}>SAVE PROFILE</button>
+                      </PanelCard>
+                    )}
+
+                    {tab === "security" && (
+                      <PanelCard>
+                        <PanelHeader title="SECURITY" badge="ACCOUNT" />
+                        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 0", borderBottom:`1px solid ${T.border}` }}>
+                          <div>
+                            <div style={{ fontSize:14, fontWeight:500 }}>Session Management</div>
+                            <div style={{ fontSize:12, color:T.muted, marginTop:2 }}>Sessions expire after 8 hours or 30 min of inactivity</div>
+                          </div>
+                        </div>
+                        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 0", borderBottom:`1px solid ${T.border}` }}>
+                          <div>
+                            <div style={{ fontSize:14, fontWeight:500 }}>Password Hashing</div>
+                            <div style={{ fontSize:12, color:T.muted, marginTop:2 }}>Passwords protected with PBKDF2-SHA256</div>
+                          </div>
+                          <span style={{ background:"rgba(34,197,94,0.1)", color:T.green, padding:"4px 10px", fontFamily:"'DM Mono',monospace", fontSize:10, letterSpacing:1 }}>ENABLED</span>
+                        </div>
+                        <div style={{ padding:"16px 0" }}>
+                          <div style={{ fontSize:14, fontWeight:500, marginBottom:4 }}>Signed in as</div>
+                          <div style={{ fontFamily:"'DM Mono',monospace", fontSize:12, color:T.amber }}>{user?.email}</div>
+                        </div>
+                        <button onClick={() => { LS.del(KEYS.session); onNav("login"); }} style={{ background:"transparent", border:`1px solid rgba(239,68,68,0.4)`, color:T.red, padding:"9px 18px", fontFamily:"'DM Sans',sans-serif", fontSize:13, cursor:"pointer" }}>SIGN OUT ALL SESSIONS</button>
+                      </PanelCard>
+                    )}
+
+                    {tab === "app" && (
+                      <PanelCard>
+                        <PanelHeader title="APP SETTINGS" />
+                        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 0", borderBottom:`1px solid ${T.border}` }}>
+                          <div>
+                            <div style={{ fontSize:14, fontWeight:500 }}>Dark Mode</div>
+                            <div style={{ fontSize:12, color:T.muted, marginTop:2 }}>Current: Dark theme (system default)</div>
+                          </div>
+                          <span style={{ background:T.amberGlow, color:T.amber, padding:"4px 10px", fontFamily:"'DM Mono',monospace", fontSize:10, letterSpacing:1 }}>DARK</span>
+                        </div>
+                        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 0", borderBottom:`1px solid ${T.border}` }}>
+                          <div>
+                            <div style={{ fontSize:14, fontWeight:500 }}>Data Storage</div>
+                            <div style={{ fontSize:12, color:T.muted, marginTop:2 }}>Using localStorage — connect Firebase for cloud sync</div>
+                          </div>
+                          <span style={{ background:T.panel2, color:T.muted, padding:"4px 10px", fontFamily:"'DM Mono',monospace", fontSize:10, letterSpacing:1 }}>LOCAL</span>
+                        </div>
+                        <div style={{ padding:"16px 0" }}>
+                          <div style={{ fontSize:14, fontWeight:500, marginBottom:4 }}>Entries Stored</div>
+                          <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:32, color:T.amber }}>{LS.get(KEYS.entries,[]).filter(e=>!e.userId||e.userId===user?.id).length}</div>
+                        </div>
+                        <div style={{ marginTop:8, padding:16, background:"rgba(139,92,246,0.06)", border:`1px solid rgba(139,92,246,0.2)` }}>
+                          <div style={{ fontFamily:"'DM Mono',monospace", fontSize:11, letterSpacing:"1px", color:"#a78bfa", marginBottom:6 }}>FIREBASE CLOUD SYNC</div>
+                          <div style={{ fontSize:13, color:T.muted }}>Connect a Firebase project to enable real-time cloud sync across your team. This is available in the full app.</div>
+                        </div>
+                      </PanelCard>
+                    )}
+                  </div>
+                </div>
+              </Content>
+            </>
+          )}
+        </AppLayout>
+      );
+    }
+
+    /* ══════════════════════════════════════════════════════
+       ROOT APP
+    ══════════════════════════════════════════════════════ */
+    function App() {
+      const [user, setUser] = useState(() => {
+        try {
+          const s = LS.get(KEYS.session);
+          if (!s?.id) return null;
+          const now = Date.now();
+          if (s._loginAt && (now - s._loginAt) > 8*60*60*1000) { LS.del(KEYS.session); return null; }
+          if (s._lastActive && (now - s._lastActive) > 30*60*1000) { LS.del(KEYS.session); return null; }
+          return s;
+        } catch { return null; }
+      });
+
+      const [page, setPage] = useState(() => {
+        if (LS.get(KEYS.session)?.id) return "dashboard";
+        return "landing";
+      });
+
+      const [toasts, setToasts] = useState([]);
+
+      /* ── Theme: "dark" | "light" | null (follow system) ── */
+      const [theme, setTheme] = useState(() => LS.get("sd_theme", null));
+
+      useEffect(() => {
+        const html = document.documentElement;
+        if (theme === "light") { html.setAttribute("data-theme", "light"); }
+        else if (theme === "dark") { html.setAttribute("data-theme", "dark"); }
+        else { html.removeAttribute("data-theme"); }
+        if (theme) LS.set("sd_theme", theme); else LS.del("sd_theme");
+      }, [theme]);
+
+      function toggleTheme() {
+        setTheme(prev => {
+          if (prev === null) {
+            // detect current effective theme to toggle away from it
+            const sys = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+            return sys === "light" ? "dark" : "light";
+          }
+          return prev === "dark" ? "light" : "dark";
+        });
+      }
+
+      /* derive current effective theme for the button label */
+      const effectiveTheme = theme ?? (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+
+      useEffect(() => {
+        const users = LS.get(KEYS.users,[]);
+        const demoDefs = [
+          { id:"demo",        firstName:"Ada",   lastName:"Okonkwo", email:"demo@sitediary.com",   password:"demo123", role:"admin",  org:"Acme Construction Ltd." },
+          { id:"demo_viewer", firstName:"Kwame", lastName:"Asante",  email:"viewer@sitediary.com", password:"demo123", role:"viewer", org:"Acme Construction Ltd." },
+        ];
+        let changed = false;
+        demoDefs.forEach(def => {
+          if (!users.find(u=>u.email===def.email)) { users.push({...def}); changed=true; }
+        });
+        if (changed) LS.set(KEYS.users, users);
+        (async () => {
+          let upgraded=false;
+          for (const u of users) {
+            if (u.password && !u.password.startsWith("pbkdf2:")) { u.password=await hashPassword(u.password); upgraded=true; }
+          }
+          if (upgraded) LS.set(KEYS.users, users);
+        })();
+      }, []);
+
+      function showToast(msg, type="info") {
+        const id = uid();
+        setToasts(t => [...t, { id, msg, type }]);
+        setTimeout(() => setToasts(t => t.filter(x=>x.id!==id)), 4000);
+      }
+      function removeToast(id) { setToasts(t => t.filter(x=>x.id!==id)); }
+
+      function navigate(target) {
+        const APP_PAGES = ["dashboard","new-entry","projects","reports","settings"];
+        if (APP_PAGES.includes(target) && !user) { setPage("login"); return; }
+        if ((target==="login"||target==="signup") && user) { setPage("dashboard"); return; }
+        setPage(target);
+        window.scrollTo(0,0);
+      }
+
+      function handleLogin(sessionUser) {
+        setUser(sessionUser);
+        setPage("dashboard");
+      }
+
+      function handleLogout() {
+        LS.del(KEYS.session);
+        setUser(null);
+        setPage("landing");
+        showToast("Signed out","info");
+      }
+
+      const commonProps = { user, onNav: navigate, showToast, toggleTheme, effectiveTheme };
+
+      return (
+        <div style={{ minHeight:"100vh", background:T.black, color:T.white }}>
+          {page==="landing"   && <LandingPage onNav={navigate} toggleTheme={toggleTheme} effectiveTheme={effectiveTheme} />}
+          {page==="login"     && <LoginPage   onNav={navigate} onLogin={handleLogin} showToast={showToast} toggleTheme={toggleTheme} effectiveTheme={effectiveTheme} />}
+          {page==="signup"    && <SignupPage  onNav={navigate} onLogin={handleLogin} showToast={showToast} toggleTheme={toggleTheme} effectiveTheme={effectiveTheme} />}
+          {page==="dashboard" && <DashboardPage {...commonProps} />}
+          {page==="new-entry" && <NewEntryPage  {...commonProps} />}
+          {page==="projects"  && <ProjectsPage  {...commonProps} />}
+          {page==="reports"   && <ReportsPage   {...commonProps} />}
+          {page==="settings"  && <SettingsPage  {...commonProps} setUser={setUser} />}
+          <ToastContainer toasts={toasts} remove={removeToast} />
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
+</html>
