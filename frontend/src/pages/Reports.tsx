@@ -44,6 +44,8 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
   const [activeModal, setActiveModal] = useState<ModalType | null>(null);
   const [severityFilter, setSeverityFilter] = useState<string>('');
   const [showWorkOnly, setShowWorkOnly] = useState(false);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
     projectsApi.list().then(setProjects).catch(() => {});
@@ -122,6 +124,25 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
     }
   };
 
+  const handleGenerateAiSummary = async () => {
+    setAiLoading(true);
+    setAiSummary(null);
+    try {
+      const params: { project?: string; date_from?: string; date_to?: string } = {};
+      if (projectFilter) params.project = projectFilter;
+      if (report?.period?.from) params.date_from = report.period.from;
+      if (report?.period?.to) params.date_to = report.period.to;
+
+      const result = await entriesApi.generateAiSummary(params);
+      setAiSummary(result.summary);
+      toast.success('AI summary generated');
+    } catch {
+      toast.error('Failed to generate AI summary');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const openDeliveries = () => setActiveModal('deliveries');
   const openIssues = () => setActiveModal('issues');
   const openWork = () => { setShowWorkOnly(true); };
@@ -175,6 +196,12 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
           className="bg-amber text-black px-6 py-2.5 font-bold text-[13px] cursor-pointer hover:bg-amber-dim transition-colors disabled:opacity-50 disabled:cursor-not-allowed self-end">
           {loading ? 'GENERATING…' : '⚡ GENERATE'}
         </button>
+        {report && (
+          <button onClick={handleGenerateAiSummary} disabled={aiLoading}
+            className="border border-purple/50 text-purple px-5 py-2.5 font-bold text-[13px] cursor-pointer hover:bg-purple/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed self-end">
+            {aiLoading ? 'AI THINKING…' : '🧠 AI SUMMARY'}
+          </button>
+        )}
       </div>
 
       {!report ? (
@@ -234,6 +261,21 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
               onClick={openWork}
             />
           </div>
+
+          {/* AI Summary */}
+          {(aiSummary || aiLoading) && (
+            <PanelCard>
+              <PanelHeader title="AI ANALYSIS" badge="LLAMA3" />
+              {aiLoading ? (
+                <div className="flex items-center gap-3 py-6 justify-center">
+                  <div className="w-4 h-4 border-2 border-purple/30 border-t-purple rounded-full animate-spin" />
+                  <span className="font-mono text-[11px] text-text-muted dark:text-text-muted tracking-wider">Analyzing site diary entries…</span>
+                </div>
+              ) : (
+                <div className="text-[13px] leading-relaxed whitespace-pre-wrap text-text-white dark:text-text-white font-mono text-[12px] leading-[1.7]">{aiSummary}</div>
+              )}
+            </PanelCard>
+          )}
 
           {/* Issues Breakdown */}
           <PanelCard>

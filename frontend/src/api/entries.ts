@@ -1,6 +1,10 @@
 import api from './client';
 import type { SiteEntry, SiteEntryCreate, ReportSummary } from '../types';
 
+export interface AiSummaryResponse {
+  summary: string;
+}
+
 export const entriesApi = {
   list: async (params?: {
     project?: string;
@@ -37,6 +41,15 @@ export const entriesApi = {
     date_to?: string;
   }): Promise<ReportSummary> => {
     const { data } = await api.get('/reports/summary/', { params });
+    return data;
+  },
+
+  generateAiSummary: async (params: {
+    project?: string;
+    date_from?: string;
+    date_to?: string;
+  }): Promise<AiSummaryResponse> => {
+    const { data } = await api.post('/reports/ai-summary/', params);
     return data;
   },
 };
